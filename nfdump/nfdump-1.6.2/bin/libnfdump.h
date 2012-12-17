@@ -29,6 +29,9 @@
  */
 #ifndef _LIBNFREADER_H
 #define _LIBNFREADER_H 1
+
+#include <stdint.h>
+#include <libnfdump/nffile.h>
 typedef struct libnfstates {
     master_record_t master_record;
     data_block_header_t block_header;
@@ -46,4 +49,13 @@ typedef struct libnfstates {
     int inblock; /* Marker to determine if in netflow block */
     int records_present; /* State if records are present */
 } libnfstates_t;
+
+void print_record(void *record);
+
+libnfstates_t* initlib(char* Mdirs, char* rfile, char* Rfile);
+
+void libcleanup(libnfstates_t* states);
+
+master_record_t* get_next_record(libnfstates_t* states);
+
 #endif
