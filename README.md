@@ -12,11 +12,9 @@ input or other temporary files.
 Building libnfdump
 ==================
 
-nfdump-1.6.2$ ./configure
+nfdump-1.6.2$ ./configure --enable-libnfdump
 nfdump-1.6.2$ make
-nfdump-1.6.2/bin/buildlibnfdump.sh
-
-In the directory nfdump-1.6.2/bin/ the library libnfdump.so should appear.
+nfdump-1.6.2$ make install
 
 
 Testing libnfcapd
