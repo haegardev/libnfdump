@@ -621,6 +621,8 @@ LEX_OUTPUT_ROOT
 LEX
 YFLAGS
 YACC
+LIBNFDUMP_FALSE
+LIBNFDUMP_TRUE
 am__fastdepCC_FALSE
 am__fastdepCC_TRUE
 CCDEPMODE
@@ -4131,9 +4133,14 @@ if test "${enable_libnfdump+set}" = set; then :
   enableval=$enable_libnfdump;
 fi
 
-if test "$enable_libnfdump" = "yes" ; then
-    LIBNFDUMP="yes"
+ if test "$enable_libnfdump" = "yes"; then
+  LIBNFDUMP_TRUE=
+  LIBNFDUMP_FALSE='#'
+else
+  LIBNFDUMP_TRUE='#'
+  LIBNFDUMP_FALSE=
 fi
+
 
 for ac_prog in 'bison -y' byacc
 do
@@ -7831,6 +7838,10 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error "conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${LIBNFDUMP_TRUE}" && test -z "${LIBNFDUMP_FALSE}"; then
+  as_fn_error "conditional \"LIBNFDUMP\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${FT2NFDUMP_TRUE}" && test -z "${FT2NFDUMP_FALSE}"; then
   as_fn_error "conditional \"FT2NFDUMP\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -9184,7 +9195,7 @@ echo "* http://lists.sourceforge.net/lists/listinfo/nfdump-discuss"
 echo "* http://lists.sourceforge.net/lists/listinfo/nfsen-discuss"
 echo "* Please send bug reports back to me: phaag@users.sourceforge.net"
 echo "* or to one of the lists."
-if  test "$LIBNFDUMP" = "yes"; then
+if  test "$enable_libnfdump" = "yes"; then
     echo "*"
     echo "*Thank you for using libnfdump"
     echo "*Please note that libnfdump is experimental. Comments are welcome."
