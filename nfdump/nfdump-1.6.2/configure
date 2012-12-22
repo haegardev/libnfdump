@@ -704,6 +704,7 @@ enable_option_checking
 enable_dependency_tracking
 enable_devel
 enable_compat15
+enable_libnfdump
 with_ftpath
 with_rrdpath
 enable_ftconv
@@ -1341,6 +1342,7 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --enable-devel       compile debug and development code into nfdump; default is NO
   --enable-compat15       compile nfdump, to read nfdump data files created with nfdump 1.5.x; default is NO
+  --enable-libnfdump      Build libnfdump; default is NO
   --enable-ftconv         Build the flow-tools to nfdump converter; default is NO
   --enable-nfprofile      Build nfprofile used by NfSen; default is NO
   --enable-sflow          Build sflow collector sfcpad; default is NO
@@ -4122,6 +4124,15 @@ fi
 #AM_CONDITIONAL(COMPAT15, test "$enable_compat15" = yes)
 if test "${enable_compat15}" = "yes" ; then
 	CFLAGS="$CFLAGS -DCOMPAT15"
+fi
+
+# Check whether --enable-libnfdump was given.
+if test "${enable_libnfdump+set}" = set; then :
+  enableval=$enable_libnfdump;
+fi
+
+if test "$enable_libnfdump" = "yes" ; then
+    LIBNFDUMP="yes"
 fi
 
 for ac_prog in 'bison -y' byacc
@@ -9173,4 +9184,9 @@ echo "* http://lists.sourceforge.net/lists/listinfo/nfdump-discuss"
 echo "* http://lists.sourceforge.net/lists/listinfo/nfsen-discuss"
 echo "* Please send bug reports back to me: phaag@users.sourceforge.net"
 echo "* or to one of the lists."
-
+if  test "$LIBNFDUMP" = "yes"; then
+    echo "*"
+    echo "*Thank you for using libnfdump"
+    echo "*Please note that libnfdump is experimental. Comments are welcome."
+    echo "*Contact me at haegardev@gmail.com"
+fi
