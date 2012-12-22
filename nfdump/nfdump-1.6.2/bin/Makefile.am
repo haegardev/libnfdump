@@ -98,7 +98,8 @@ ft2nfdump_LDADD += @FT_LDFLAGS@
 endif
 
 if LIBNFDUMP
-libnfdump_so_SOURCES = libnfdump.so $(filelzo) $(nflist) $(util)
+AM_CFLAGS += -fPIC
+libnfdump_so_SOURCES = libnfdump.c $(filelzo) $(nflist) $(util)
 libnfdump_so_LDFLAGS = -shared -Wl,-soname,libnfdump.so -lc 
 endif
 
