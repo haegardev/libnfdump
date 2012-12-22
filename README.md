@@ -13,7 +13,9 @@ Building libnfdump
 ==================
 
 nfdump-1.6.2$ ./configure --enable-libnfdump
+
 nfdump-1.6.2$ make
+
 nfdump-1.6.2$ make install
 
 
