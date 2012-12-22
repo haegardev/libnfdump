@@ -11,6 +11,7 @@ AM_INIT_AUTOMAKE()
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
+LT_INIT()
 
 AC_MSG_CHECKING(whether we are using SunPro C)
 AC_TRY_COMPILE([],[#ifndef __SUNPRO_C
