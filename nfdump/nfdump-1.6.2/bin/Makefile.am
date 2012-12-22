@@ -18,7 +18,7 @@ bin_PROGRAMS += ft2nfdump
 endif
 
 if LIBNFDUMP
-bin_PROGRAMS += libnfdump.so
+lib_LTLIBRARIES = libnfdump.la
 endif
 
 BUILT_SOURCES = grammar.h
@@ -98,9 +98,12 @@ ft2nfdump_LDADD += @FT_LDFLAGS@
 endif
 
 if LIBNFDUMP
-AM_CFLAGS += -fPIC
-libnfdump_so_SOURCES = libnfdump.c $(filelzo) $(nflist) $(util)
-libnfdump_so_LDFLAGS = -shared -Wl,-soname,libnfdump.so -lc 
+prog_CFLAGS = $(AM_CFLAGS)
+#FIXME When objects such as nffile are used, then autoreconf fails with the 
+#error Objects-created-both-with-libtool-and-without. I did not get the idea
+#of http://www.gnu.org/software/automake/manual/html_node/Objects-created-both-with-libtool-and-without.html
+#Therefore, symlinks are used to get other c files
+libnfdump_la_SOURCES = libnfdump.c libnffile.c libflist.c libutil.c libminilzo.c libnfx.c 
 endif
 
 EXTRA_DIST = inline.c collector_inline.c nffile_inline.c nfdump_inline.c heapsort_inline.c applybits_inline.c test.sh nfdump.test.out parse_csv.pl
