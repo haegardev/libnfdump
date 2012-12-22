@@ -43,6 +43,7 @@ TESTS = nftest$(EXEEXT) test.sh
 @LIBNFDUMP_TRUE@am__append_4 = libnfdump.so
 @READPCAP_TRUE@am__append_5 = pcap_reader.c pcap_reader.h
 @READPCAP_TRUE@am__append_6 = pcap_reader.c pcap_reader.h
+@LIBNFDUMP_TRUE@am__append_7 = -fPIC
 subdir = bin
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in grammar.c \
 	grammar.h scanner.c
@@ -76,14 +77,15 @@ ft2nfdump_OBJECTS = $(am_ft2nfdump_OBJECTS)
 ft2nfdump_DEPENDENCIES =
 ft2nfdump_LINK = $(CCLD) $(ft2nfdump_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am__libnfdump_so_SOURCES_DIST = libnfdump.so minilzo.c minilzo.h \
+am__libnfdump_so_SOURCES_DIST = libnfdump.c minilzo.c minilzo.h \
 	lzoconf.h lzodefs.h nffile.c nffile.h nfx.c nfx.h flist.c \
 	flist.h fts_compat.c fts_compat.h util.c util.h
 am__objects_4 = minilzo.$(OBJEXT) nffile.$(OBJEXT) nfx.$(OBJEXT)
 am__objects_5 = flist.$(OBJEXT) fts_compat.$(OBJEXT)
 am__objects_6 = util.$(OBJEXT)
-@LIBNFDUMP_TRUE@am_libnfdump_so_OBJECTS = $(am__objects_4) \
-@LIBNFDUMP_TRUE@	$(am__objects_5) $(am__objects_6)
+@LIBNFDUMP_TRUE@am_libnfdump_so_OBJECTS = libnfdump.$(OBJEXT) \
+@LIBNFDUMP_TRUE@	$(am__objects_4) $(am__objects_5) \
+@LIBNFDUMP_TRUE@	$(am__objects_6)
 libnfdump_so_OBJECTS = $(am_libnfdump_so_OBJECTS)
 libnfdump_so_LDADD = $(LDADD)
 libnfdump_so_DEPENDENCIES =
@@ -329,7 +331,7 @@ INCLUDES = $(DEPS_CFLAGS)
 LDADD = $(DEPS_LIBS)
 
 #Add extra debug info for gdb
-AM_CFLAGS = -ggdb 
+AM_CFLAGS = -ggdb $(am__append_7)
 common = nf_common.c nf_common.h panonymizer.c panonymizer.h rijndael.c \
 	version.h rijndael.h
 
@@ -381,9 +383,7 @@ nftest_DEPENDENCIES = nfgen
 @FT2NFDUMP_TRUE@ft2nfdump_SOURCES = ft2nfdump.c $(common) $(filelzo) $(util)
 @FT2NFDUMP_TRUE@ft2nfdump_CFLAGS = @FT_INCLUDES@
 @FT2NFDUMP_TRUE@ft2nfdump_LDADD = -lft -lz @FT_LDFLAGS@
-@LIBNFDUMP_TRUE@libnfdump_so_SOURCES = libnfdump.so $(filelzo) $(nflist) $(util)
-#libnfdump_so_LDFLAGS = 
-#libnfdump_so_LDADD = -shared -Wl,-soname,libnfdump.so -lc 
+@LIBNFDUMP_TRUE@libnfdump_so_SOURCES = libnfdump.c $(filelzo) $(nflist) $(util)
 @LIBNFDUMP_TRUE@libnfdump_so_LDFLAGS = -shared -Wl,-soname,libnfdump.so -lc 
 EXTRA_DIST = inline.c collector_inline.c nffile_inline.c nfdump_inline.c heapsort_inline.c applybits_inline.c test.sh nfdump.test.out parse_csv.pl
 CLEANFILES = lex.yy.c grammar.c grammar.h scanner.c scanner.h
@@ -519,6 +519,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fts_compat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grammar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipconv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnfdump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minilzo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netflow_v5_v7.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netflow_v9.Po@am__quote@
