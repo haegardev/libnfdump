@@ -76,10 +76,19 @@ ft2nfdump_OBJECTS = $(am_ft2nfdump_OBJECTS)
 ft2nfdump_DEPENDENCIES =
 ft2nfdump_LINK = $(CCLD) $(ft2nfdump_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-libnfdump_so_SOURCES = libnfdump.c
-libnfdump_so_OBJECTS = libnfdump.$(OBJEXT)
+am__libnfdump_so_SOURCES_DIST = libnfdump.so minilzo.c minilzo.h \
+	lzoconf.h lzodefs.h nffile.c nffile.h nfx.c nfx.h flist.c \
+	flist.h fts_compat.c fts_compat.h util.c util.h
+am__objects_4 = minilzo.$(OBJEXT) nffile.$(OBJEXT) nfx.$(OBJEXT)
+am__objects_5 = flist.$(OBJEXT) fts_compat.$(OBJEXT)
+am__objects_6 = util.$(OBJEXT)
+@LIBNFDUMP_TRUE@am_libnfdump_so_OBJECTS = $(am__objects_4) \
+@LIBNFDUMP_TRUE@	$(am__objects_5) $(am__objects_6)
+libnfdump_so_OBJECTS = $(am_libnfdump_so_OBJECTS)
 libnfdump_so_LDADD = $(LDADD)
 libnfdump_so_DEPENDENCIES =
+libnfdump_so_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(libnfdump_so_LDFLAGS) $(LDFLAGS) -o $@
 am__nfcapd_SOURCES_DIST = nfcapd.c nf_common.c nf_common.h \
 	panonymizer.c panonymizer.h rijndael.c version.h rijndael.h \
 	util.c util.h minilzo.c minilzo.h lzoconf.h lzodefs.h nffile.c \
@@ -88,42 +97,39 @@ am__nfcapd_SOURCES_DIST = nfcapd.c nf_common.c nf_common.h \
 	collector.c collector.h netflow_v9.c netflow_v9.h \
 	netflow_v5_v7.c netflow_v5_v7.h bookkeeper.c bookkeeper.h \
 	expire.c expire.h pcap_reader.c pcap_reader.h
-am__objects_4 = nfcapd-nf_common.$(OBJEXT) \
+am__objects_7 = nfcapd-nf_common.$(OBJEXT) \
 	nfcapd-panonymizer.$(OBJEXT) nfcapd-rijndael.$(OBJEXT)
-am__objects_5 = nfcapd-util.$(OBJEXT)
-am__objects_6 = nfcapd-minilzo.$(OBJEXT) nfcapd-nffile.$(OBJEXT) \
+am__objects_8 = nfcapd-util.$(OBJEXT)
+am__objects_9 = nfcapd-minilzo.$(OBJEXT) nfcapd-nffile.$(OBJEXT) \
 	nfcapd-nfx.$(OBJEXT)
-am__objects_7 = nfcapd-flist.$(OBJEXT) nfcapd-fts_compat.$(OBJEXT)
-am__objects_8 = nfcapd-nfstatfile.$(OBJEXT)
-am__objects_9 = nfcapd-launch.$(OBJEXT)
-am__objects_10 = nfcapd-nfnet.$(OBJEXT)
-am__objects_11 = nfcapd-collector.$(OBJEXT)
-am__objects_12 = nfcapd-netflow_v9.$(OBJEXT)
-am__objects_13 = nfcapd-netflow_v5_v7.$(OBJEXT)
-am__objects_14 = nfcapd-bookkeeper.$(OBJEXT)
-am__objects_15 = nfcapd-expire.$(OBJEXT)
-@READPCAP_TRUE@am__objects_16 = nfcapd-pcap_reader.$(OBJEXT)
-am_nfcapd_OBJECTS = nfcapd-nfcapd.$(OBJEXT) $(am__objects_4) \
-	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
+am__objects_10 = nfcapd-flist.$(OBJEXT) nfcapd-fts_compat.$(OBJEXT)
+am__objects_11 = nfcapd-nfstatfile.$(OBJEXT)
+am__objects_12 = nfcapd-launch.$(OBJEXT)
+am__objects_13 = nfcapd-nfnet.$(OBJEXT)
+am__objects_14 = nfcapd-collector.$(OBJEXT)
+am__objects_15 = nfcapd-netflow_v9.$(OBJEXT)
+am__objects_16 = nfcapd-netflow_v5_v7.$(OBJEXT)
+am__objects_17 = nfcapd-bookkeeper.$(OBJEXT)
+am__objects_18 = nfcapd-expire.$(OBJEXT)
+@READPCAP_TRUE@am__objects_19 = nfcapd-pcap_reader.$(OBJEXT)
+am_nfcapd_OBJECTS = nfcapd-nfcapd.$(OBJEXT) $(am__objects_7) \
 	$(am__objects_8) $(am__objects_9) $(am__objects_10) \
 	$(am__objects_11) $(am__objects_12) $(am__objects_13) \
-	$(am__objects_14) $(am__objects_15) $(am__objects_16)
+	$(am__objects_14) $(am__objects_15) $(am__objects_16) \
+	$(am__objects_17) $(am__objects_18) $(am__objects_19)
 nfcapd_OBJECTS = $(am_nfcapd_OBJECTS)
 nfcapd_DEPENDENCIES =
 nfcapd_LINK = $(CCLD) $(nfcapd_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am__objects_17 = nf_common.$(OBJEXT) panonymizer.$(OBJEXT) \
+am__objects_20 = nf_common.$(OBJEXT) panonymizer.$(OBJEXT) \
 	rijndael.$(OBJEXT)
-am__objects_18 = nflowcache.$(OBJEXT)
-am__objects_19 = util.$(OBJEXT)
-am__objects_20 = minilzo.$(OBJEXT) nffile.$(OBJEXT) nfx.$(OBJEXT)
-am__objects_21 = flist.$(OBJEXT) fts_compat.$(OBJEXT)
+am__objects_21 = nflowcache.$(OBJEXT)
 am__objects_22 = grammar.$(OBJEXT) scanner.$(OBJEXT) nftree.$(OBJEXT) \
 	ipconv.$(OBJEXT)
 am__objects_23 = nfprof.$(OBJEXT)
 am_nfdump_OBJECTS = nfdump.$(OBJEXT) nfstat.$(OBJEXT) \
-	nfexport.$(OBJEXT) $(am__objects_17) $(am__objects_18) \
-	$(am__objects_19) $(am__objects_20) $(am__objects_21) \
+	nfexport.$(OBJEXT) $(am__objects_20) $(am__objects_21) \
+	$(am__objects_6) $(am__objects_4) $(am__objects_5) \
 	$(am__objects_22) $(am__objects_23)
 nfdump_OBJECTS = $(am_nfdump_OBJECTS)
 nfdump_LDADD = $(LDADD)
@@ -132,21 +138,21 @@ am__objects_24 = bookkeeper.$(OBJEXT)
 am__objects_25 = expire.$(OBJEXT)
 am__objects_26 = nfstatfile.$(OBJEXT)
 am_nfexpire_OBJECTS = nfexpire.$(OBJEXT) $(am__objects_24) \
-	$(am__objects_25) $(am__objects_19) $(am__objects_26)
+	$(am__objects_25) $(am__objects_6) $(am__objects_26)
 nfexpire_OBJECTS = $(am_nfexpire_OBJECTS)
 nfexpire_DEPENDENCIES =
-am_nfgen_OBJECTS = nfgen.$(OBJEXT) $(am__objects_19) $(am__objects_20) \
-	$(am__objects_21)
+am_nfgen_OBJECTS = nfgen.$(OBJEXT) $(am__objects_6) $(am__objects_4) \
+	$(am__objects_5)
 nfgen_OBJECTS = $(am_nfgen_OBJECTS)
 nfgen_LDADD = $(LDADD)
 nfgen_DEPENDENCIES =
 am_nfprofile_OBJECTS = nfprofile.$(OBJEXT) profile.$(OBJEXT) \
-	$(am__objects_17) $(am__objects_19) $(am__objects_20) \
-	$(am__objects_21) $(am__objects_22) $(am__objects_26)
+	$(am__objects_20) $(am__objects_6) $(am__objects_4) \
+	$(am__objects_5) $(am__objects_22) $(am__objects_26)
 nfprofile_OBJECTS = $(am_nfprofile_OBJECTS)
 nfprofile_DEPENDENCIES =
-am_nfreader_OBJECTS = nfreader.$(OBJEXT) $(am__objects_19) \
-	$(am__objects_20) $(am__objects_21)
+am_nfreader_OBJECTS = nfreader.$(OBJEXT) $(am__objects_6) \
+	$(am__objects_4) $(am__objects_5)
 nfreader_OBJECTS = $(am_nfreader_OBJECTS)
 nfreader_LDADD = $(LDADD)
 nfreader_DEPENDENCIES =
@@ -154,15 +160,15 @@ am__objects_27 = nfnet.$(OBJEXT)
 am__objects_28 = collector.$(OBJEXT)
 am__objects_29 = netflow_v9.$(OBJEXT)
 am__objects_30 = netflow_v5_v7.$(OBJEXT)
-am_nfreplay_OBJECTS = nfreplay.$(OBJEXT) $(am__objects_17) \
-	$(am__objects_19) $(am__objects_20) $(am__objects_21) \
+am_nfreplay_OBJECTS = nfreplay.$(OBJEXT) $(am__objects_20) \
+	$(am__objects_6) $(am__objects_4) $(am__objects_5) \
 	$(am__objects_22) $(am__objects_23) $(am__objects_27) \
 	$(am__objects_28) $(am__objects_29) $(am__objects_30)
 nfreplay_OBJECTS = $(am_nfreplay_OBJECTS)
 nfreplay_LDADD = $(LDADD)
 nfreplay_DEPENDENCIES =
-am_nftest_OBJECTS = nftest.$(OBJEXT) $(am__objects_17) \
-	$(am__objects_22) $(am__objects_20)
+am_nftest_OBJECTS = nftest.$(OBJEXT) $(am__objects_20) \
+	$(am__objects_22) $(am__objects_4)
 nftest_OBJECTS = $(am_nftest_OBJECTS)
 nftest_LDADD = $(LDADD)
 am__sfcapd_SOURCES_DIST = sfcapd.c sflow.c sflow.h sflow_proto.h \
@@ -206,15 +212,15 @@ LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 LEXCOMPILE = $(LEX) $(LFLAGS) $(AM_LFLAGS)
 YLWRAP = $(top_srcdir)/ylwrap
 YACCCOMPILE = $(YACC) $(YFLAGS) $(AM_YFLAGS)
-SOURCES = $(ft2nfdump_SOURCES) libnfdump.c $(nfcapd_SOURCES) \
+SOURCES = $(ft2nfdump_SOURCES) $(libnfdump_so_SOURCES) \
+	$(nfcapd_SOURCES) $(nfdump_SOURCES) $(nfexpire_SOURCES) \
+	$(nfgen_SOURCES) $(nfprofile_SOURCES) $(nfreader_SOURCES) \
+	$(nfreplay_SOURCES) $(nftest_SOURCES) $(sfcapd_SOURCES)
+DIST_SOURCES = $(am__ft2nfdump_SOURCES_DIST) \
+	$(am__libnfdump_so_SOURCES_DIST) $(am__nfcapd_SOURCES_DIST) \
 	$(nfdump_SOURCES) $(nfexpire_SOURCES) $(nfgen_SOURCES) \
 	$(nfprofile_SOURCES) $(nfreader_SOURCES) $(nfreplay_SOURCES) \
-	$(nftest_SOURCES) $(sfcapd_SOURCES)
-DIST_SOURCES = $(am__ft2nfdump_SOURCES_DIST) libnfdump.c \
-	$(am__nfcapd_SOURCES_DIST) $(nfdump_SOURCES) \
-	$(nfexpire_SOURCES) $(nfgen_SOURCES) $(nfprofile_SOURCES) \
-	$(nfreader_SOURCES) $(nfreplay_SOURCES) $(nftest_SOURCES) \
-	$(am__sfcapd_SOURCES_DIST)
+	$(nftest_SOURCES) $(am__sfcapd_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 am__tty_colors = \
@@ -375,6 +381,10 @@ nftest_DEPENDENCIES = nfgen
 @FT2NFDUMP_TRUE@ft2nfdump_SOURCES = ft2nfdump.c $(common) $(filelzo) $(util)
 @FT2NFDUMP_TRUE@ft2nfdump_CFLAGS = @FT_INCLUDES@
 @FT2NFDUMP_TRUE@ft2nfdump_LDADD = -lft -lz @FT_LDFLAGS@
+@LIBNFDUMP_TRUE@libnfdump_so_SOURCES = libnfdump.so $(filelzo) $(nflist) $(util)
+#libnfdump_so_LDFLAGS = 
+#libnfdump_so_LDADD = -shared -Wl,-soname,libnfdump.so -lc 
+@LIBNFDUMP_TRUE@libnfdump_so_LDFLAGS = -shared -Wl,-soname,libnfdump.so -lc 
 EXTRA_DIST = inline.c collector_inline.c nffile_inline.c nfdump_inline.c heapsort_inline.c applybits_inline.c test.sh nfdump.test.out parse_csv.pl
 CLEANFILES = lex.yy.c grammar.c grammar.h scanner.c scanner.h
 all: $(BUILT_SOURCES)
@@ -454,7 +464,7 @@ ft2nfdump$(EXEEXT): $(ft2nfdump_OBJECTS) $(ft2nfdump_DEPENDENCIES)
 	$(ft2nfdump_LINK) $(ft2nfdump_OBJECTS) $(ft2nfdump_LDADD) $(LIBS)
 libnfdump.so$(EXEEXT): $(libnfdump_so_OBJECTS) $(libnfdump_so_DEPENDENCIES) 
 	@rm -f libnfdump.so$(EXEEXT)
-	$(LINK) $(libnfdump_so_OBJECTS) $(libnfdump_so_LDADD) $(LIBS)
+	$(libnfdump_so_LINK) $(libnfdump_so_OBJECTS) $(libnfdump_so_LDADD) $(LIBS)
 nfcapd$(EXEEXT): $(nfcapd_OBJECTS) $(nfcapd_DEPENDENCIES) 
 	@rm -f nfcapd$(EXEEXT)
 	$(nfcapd_LINK) $(nfcapd_OBJECTS) $(nfcapd_LDADD) $(LIBS)
@@ -509,7 +519,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fts_compat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grammar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipconv.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnfdump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minilzo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netflow_v5_v7.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netflow_v9.Po@am__quote@
