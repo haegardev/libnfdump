@@ -104,6 +104,7 @@ prog_CFLAGS = $(AM_CFLAGS)
 #of http://www.gnu.org/software/automake/manual/html_node/Objects-created-both-with-libtool-and-without.html
 #Therefore, symlinks are used to get other c files
 libnfdump_la_SOURCES = libnfdump.c libnffile.c libflist.c libutil.c libminilzo.c libnfx.c 
+nobase_include_HEADERS = libnfdump/nffile.h libnfdump/libnfdump.h
 endif
 
 EXTRA_DIST = inline.c collector_inline.c nffile_inline.c nfdump_inline.c heapsort_inline.c applybits_inline.c test.sh nfdump.test.out parse_csv.pl
