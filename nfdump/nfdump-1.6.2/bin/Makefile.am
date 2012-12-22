@@ -17,6 +17,10 @@ if FT2NFDUMP
 bin_PROGRAMS += ft2nfdump
 endif
 
+if LIBNFDUMP
+bin_PROGRAMS += libnfdump.so
+endif
+
 BUILT_SOURCES = grammar.h
 AM_YFLAGS = -d
 
