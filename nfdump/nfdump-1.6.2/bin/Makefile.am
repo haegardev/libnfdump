@@ -97,6 +97,11 @@ ft2nfdump_LDADD = -lft -lz
 ft2nfdump_LDADD += @FT_LDFLAGS@
 endif
 
+if LIBNFDUMP
+libnfdump_so_SOURCES = libnfdump.so $(filelzo) $(nflist) $(util)
+libnfdump_so_LDFLAGS = -shared -Wl,-soname,libnfdump.so -lc 
+endif
+
 EXTRA_DIST = inline.c collector_inline.c nffile_inline.c nfdump_inline.c heapsort_inline.c applybits_inline.c test.sh nfdump.test.out parse_csv.pl
 	
 CLEANFILES = lex.yy.c grammar.c grammar.h scanner.c scanner.h
