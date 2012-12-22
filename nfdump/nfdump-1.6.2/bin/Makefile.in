@@ -34,14 +34,15 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = nfcapd$(EXEEXT) nfdump$(EXEEXT) nfreplay$(EXEEXT) \
 	nfexpire$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
-	$(am__EXEEXT_3)
+	$(am__EXEEXT_3) $(am__EXEEXT_4)
 EXTRA_PROGRAMS = nftest$(EXEEXT) nfgen$(EXEEXT) nfreader$(EXEEXT)
 TESTS = nftest$(EXEEXT) test.sh
 @SFLOW_TRUE@am__append_1 = sfcapd
 @NFPROFILE_TRUE@am__append_2 = nfprofile
 @FT2NFDUMP_TRUE@am__append_3 = ft2nfdump
-@READPCAP_TRUE@am__append_4 = pcap_reader.c pcap_reader.h
+@LIBNFDUMP_TRUE@am__append_4 = libnfdump.so
 @READPCAP_TRUE@am__append_5 = pcap_reader.c pcap_reader.h
+@READPCAP_TRUE@am__append_6 = pcap_reader.c pcap_reader.h
 subdir = bin
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in grammar.c \
 	grammar.h scanner.c
@@ -56,6 +57,7 @@ CONFIG_CLEAN_VPATH_FILES =
 @SFLOW_TRUE@am__EXEEXT_1 = sfcapd$(EXEEXT)
 @NFPROFILE_TRUE@am__EXEEXT_2 = nfprofile$(EXEEXT)
 @FT2NFDUMP_TRUE@am__EXEEXT_3 = ft2nfdump$(EXEEXT)
+@LIBNFDUMP_TRUE@am__EXEEXT_4 = libnfdump.so$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__ft2nfdump_SOURCES_DIST = ft2nfdump.c nf_common.c nf_common.h \
@@ -74,6 +76,10 @@ ft2nfdump_OBJECTS = $(am_ft2nfdump_OBJECTS)
 ft2nfdump_DEPENDENCIES =
 ft2nfdump_LINK = $(CCLD) $(ft2nfdump_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+libnfdump_so_SOURCES = libnfdump.c
+libnfdump_so_OBJECTS = libnfdump.$(OBJEXT)
+libnfdump_so_LDADD = $(LDADD)
+libnfdump_so_DEPENDENCIES =
 am__nfcapd_SOURCES_DIST = nfcapd.c nf_common.c nf_common.h \
 	panonymizer.c panonymizer.h rijndael.c version.h rijndael.h \
 	util.c util.h minilzo.c minilzo.h lzoconf.h lzodefs.h nffile.c \
@@ -200,11 +206,11 @@ LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 LEXCOMPILE = $(LEX) $(LFLAGS) $(AM_LFLAGS)
 YLWRAP = $(top_srcdir)/ylwrap
 YACCCOMPILE = $(YACC) $(YFLAGS) $(AM_YFLAGS)
-SOURCES = $(ft2nfdump_SOURCES) $(nfcapd_SOURCES) $(nfdump_SOURCES) \
-	$(nfexpire_SOURCES) $(nfgen_SOURCES) $(nfprofile_SOURCES) \
-	$(nfreader_SOURCES) $(nfreplay_SOURCES) $(nftest_SOURCES) \
-	$(sfcapd_SOURCES)
-DIST_SOURCES = $(am__ft2nfdump_SOURCES_DIST) \
+SOURCES = $(ft2nfdump_SOURCES) libnfdump.c $(nfcapd_SOURCES) \
+	$(nfdump_SOURCES) $(nfexpire_SOURCES) $(nfgen_SOURCES) \
+	$(nfprofile_SOURCES) $(nfreader_SOURCES) $(nfreplay_SOURCES) \
+	$(nftest_SOURCES) $(sfcapd_SOURCES)
+DIST_SOURCES = $(am__ft2nfdump_SOURCES_DIST) libnfdump.c \
 	$(am__nfcapd_SOURCES_DIST) $(nfdump_SOURCES) \
 	$(nfexpire_SOURCES) $(nfgen_SOURCES) $(nfprofile_SOURCES) \
 	$(nfreader_SOURCES) $(nfreplay_SOURCES) $(nftest_SOURCES) \
@@ -348,12 +354,12 @@ nfprofile_SOURCES = nfprofile.c profile.c profile.h \
 nfprofile_LDADD = -lrrd
 nfcapd_SOURCES = nfcapd.c $(common) $(util) $(filelzo) $(nflist) \
 	$(nfstatfile) $(launch) $(nfnet) $(collector) $(nfv9) \
-	$(nfv5v7) $(bookkeeper) $(expire) $(am__append_4)
+	$(nfv5v7) $(bookkeeper) $(expire) $(am__append_5)
 @READPCAP_TRUE@nfcapd_CFLAGS = -DPCAP
 @READPCAP_TRUE@nfcapd_LDADD = -lpcap
 sfcapd_SOURCES = sfcapd.c sflow.c sflow.h sflow_proto.h $(common) \
 	$(util) $(filelzo) $(nflist) $(nfstatfile) $(launch) $(nfnet) \
-	$(collector) $(bookkeeper) $(expire) $(am__append_5)
+	$(collector) $(bookkeeper) $(expire) $(am__append_6)
 @READPCAP_TRUE@sfcapd_CFLAGS = -DPCAP
 @READPCAP_TRUE@sfcapd_LDADD = -lpcap
 nfreader_SOURCES = nfreader.c \
@@ -446,6 +452,9 @@ clean-binPROGRAMS:
 ft2nfdump$(EXEEXT): $(ft2nfdump_OBJECTS) $(ft2nfdump_DEPENDENCIES) 
 	@rm -f ft2nfdump$(EXEEXT)
 	$(ft2nfdump_LINK) $(ft2nfdump_OBJECTS) $(ft2nfdump_LDADD) $(LIBS)
+libnfdump.so$(EXEEXT): $(libnfdump_so_OBJECTS) $(libnfdump_so_DEPENDENCIES) 
+	@rm -f libnfdump.so$(EXEEXT)
+	$(LINK) $(libnfdump_so_OBJECTS) $(libnfdump_so_LDADD) $(LIBS)
 nfcapd$(EXEEXT): $(nfcapd_OBJECTS) $(nfcapd_DEPENDENCIES) 
 	@rm -f nfcapd$(EXEEXT)
 	$(nfcapd_LINK) $(nfcapd_OBJECTS) $(nfcapd_LDADD) $(LIBS)
@@ -500,6 +509,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fts_compat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grammar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipconv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnfdump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minilzo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netflow_v5_v7.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netflow_v9.Po@am__quote@
