@@ -58,9 +58,7 @@ fi
 
 AC_ARG_ENABLE(libnfdump,
 [  --enable-libnfdump      Build libnfdump; default is NO])
-if test "$enable_libnfdump" = "yes" ; then
-    LIBNFDUMP="yes"
-fi
+AM_CONDITIONAL(LIBNFDUMP, test "$enable_libnfdump" = "yes")
 
 AC_PROG_YACC
 AC_PROG_LEX
@@ -326,7 +324,7 @@ echo "* http://lists.sourceforge.net/lists/listinfo/nfdump-discuss"
 echo "* http://lists.sourceforge.net/lists/listinfo/nfsen-discuss"
 echo "* Please send bug reports back to me: phaag@users.sourceforge.net"
 echo "* or to one of the lists."
-if  test "$LIBNFDUMP" = "yes"; then
+if  test "$enable_libnfdump" = "yes"; then
     echo "*"
     echo "*Thank you for using libnfdump"
     echo "*Please note that libnfdump is experimental. Comments are welcome."
