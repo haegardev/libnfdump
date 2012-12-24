@@ -28,7 +28,7 @@
 typedef struct source_s {
     GSList* peers;
     uint32_t ipv4addr;
-    int members;
+    int peermembers;
 } source_t;
 
 typedef struct peer_s {
@@ -104,12 +104,12 @@ void print_source_list(void)
         if (item){
             src = (source_t*)item->data;
             /* Compute the number of full peer lists */
-            if (src->members == MAXPEERS) {
+            if (src->peermembers == MAXPEERS) {
                 fullpeerlists++;
             }
             src->ipv4addr = htonl(src->ipv4addr);
             inet_ntop(AF_INET, &src->ipv4addr, as, sizeof(as));
-            printf("%s %d ", as,src->members);
+            printf("%s %d ", as,src->peermembers);
             print_peer_scores(src->peers);
             item = item->next; 
         }
@@ -156,13 +156,13 @@ GSList* update_peer_list(source_t* src, uint32_t ip)
         }
     }
     /* The peer does not exists */
-    if (src->members < MAXPEERS) {
+    if (src->peermembers < MAXPEERS) {
         peer = malloc(sizeof(peer_t));
         if (peer) {
             peer->ipv4addr = ip; 
             peer->score = 1;
             nplist = g_slist_prepend(peerlist,peer);
-            src->members++;
+            src->peermembers++;
         }
     } else {
         missedpeers++;
@@ -190,7 +190,7 @@ source_t* update_source_list(uint32_t ip)
         if (srcmembers < MAXSOURCES) {
             src->ipv4addr = ip;
             src->peers = NULL;
-            src->members = 0;
+            src->peermembers = 0;
             srclist = g_slist_prepend(srclist,src);
             srcmembers++;
             return (source_t*)srclist->data;
