@@ -33,9 +33,15 @@ typedef struct source_s {
 
 typedef struct peer_s {
     uint32_t ipv4addr;
-    int appearance; /* Parameter how many times the given IP address appeared */
-    //TODO extend this with other features such as volume, packets per second
-    //etc
+    uint64_t appearance; /* Parameter how many times the given IP appeared */
+    uint64_t duration;
+    uint64_t packets;
+    uint64_t bytes;
+    uint64_t flows;
+    uint64_t pps;
+    uint64_t bps;
+    uint64_t fowarded;
+    /* Put here your other features that should be recorded */
 } peer_t;
 
 typedef struct portevolution_s{
@@ -56,7 +62,7 @@ int process_record(portevolution_t* pe, master_record_t* r);
 void print_peer_scores(portevolution_t* pe, GSList* peers);
 void print_source_list(portevolution_t* pe);
 GSList* search_address(portevolution_t* pe, uint32_t ip);
-GSList* update_peer_list(portevolution_t* pe, source_t* src, uint32_t ip);
+GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r);
 source_t* update_source_list(portevolution_t* pe, uint32_t ip);
 
 int process_record(portevolution_t* pe, master_record_t* r)
@@ -67,7 +73,7 @@ int process_record(portevolution_t* pe, master_record_t* r)
     if ((r->srcas == pe->tas) && (r->dstport == pe->iport)) {
         src = update_source_list(pe, r->v4.srcaddr);
         if (src){
-            src->peers=update_peer_list(pe, src,r->v4.dstaddr);
+            src->peers=update_peer_list(pe, src,r);
         }else{
             /* The source list is full tell process_record to stop */
             return 0;    
@@ -106,6 +112,7 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
+            //FIXME %d is not suited for uint_64
             printf("%d ",peer->appearance);                    
             item = item->next;
         }
@@ -153,7 +160,7 @@ GSList* search_address(portevolution_t* pe, uint32_t ip)
     return NULL; 
 }
 
-GSList* update_peer_list(portevolution_t* pe, source_t* src, uint32_t ip)
+GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
 {
     GSList* item;
     peer_t* peer;
@@ -167,8 +174,12 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, uint32_t ip)
             peer = (peer_t*) item->data;
             if (peer) {
                 // existing peer found
-                if (peer->ipv4addr == ip) {
+                if (peer->ipv4addr == r->v4.dstaddr) {
                     peer->appearance++;
+                    peer->duration+=(r->last - r->first);
+                    peer->packets+=r->dPkts + r->out_pkts;
+                    peer->bytes+=r->dOctets + r->out_bytes;
+                    peer->flows+=r->aggr_flows;  
                     return peerlist;
                 }
             }
@@ -179,8 +190,17 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, uint32_t ip)
     if (src->peermembers < MAXPEERS) {
         peer = malloc(sizeof(peer_t));
         if (peer) {
-            peer->ipv4addr = ip; 
+            peer->ipv4addr = r->v4.dstaddr; 
             peer->appearance = 1;
+            /* FIXME Check if the right fields are used? */
+            /* FIXME change data type to uint64_t */
+            peer->duration = r->last - r->first; 
+            peer->packets = r->dPkts + r->out_pkts; 
+            peer->bytes= r->dOctets + r->out_bytes;
+            peer->flows=r->aggr_flows;
+            peer->pps=-1; /* TODO Does this field has to be computed? */
+            peer->bps=-1; /* TODO Does this filed has to be computed? */
+            peer->fowarded=-1; /* This mask must be interpreted?*/
             nplist = g_slist_prepend(peerlist,peer);
             src->peermembers++;
         }
