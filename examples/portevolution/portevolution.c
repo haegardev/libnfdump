@@ -22,7 +22,7 @@
 
 #include <libnfdump/libnfdump.h>
 #define TCP 6
-#define MAXPEERS 10
+#define MAXPEERS 4096 
 #define MAXSOURCES 4096 
 
 typedef struct source_s {
@@ -46,6 +46,7 @@ int matched = 0; /* Number of matched flows */
 GSList* srclist; /* List of IP addresses belonging to the AS denoted tas */
 int srcmembers = 0;
 int missedpeers = 0; /* Number of missed peers */
+int fullpeerlists = 0; /* Number of full peer lists */
 
 source_t* update_source_list(uint32_t ip);
 GSList* update_peer_list(source_t* src, uint32_t ip);
@@ -102,6 +103,10 @@ void print_source_list(void)
     while (item != NULL){
         if (item){
             src = (source_t*)item->data;
+            /* Compute the number of full peer lists */
+            if (src->members == MAXPEERS) {
+                fullpeerlists++;
+            }
             src->ipv4addr = htonl(src->ipv4addr);
             inet_ntop(AF_INET, &src->ipv4addr, as, sizeof(as));
             printf("%s %d ", as,src->members);
@@ -230,10 +235,13 @@ int main (int argc, char* argv[])
         printf("#Processed records: %d\n",counter);
         printf("#Matched records: %d\n",matched);
         printf("#Source list members: %d\n",srcmembers);
-        printf("#Number of missed peers: %d\n",missedpeers);
         if (srcmembers == MAXSOURCES){
             printf("#Warning: Source list is truncated\n");
         }      
+        printf("#Number of missed peers: %d\n",missedpeers);
+        printf("#Number of full peer lists: %d\n", fullpeerlists);
+        printf("#Full peer list ratio: %.2f\n",
+               (float) fullpeerlists / (float) srcmembers); 
         /* Close the nfcapd file and free up internal states */
         libcleanup(states);
         //TODO free up the used memory
