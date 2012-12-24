@@ -23,6 +23,7 @@
 #include <libnfdump/libnfdump.h>
 #define TCP 6
 #define MAXPEERS 4096
+#define MAXSOURCES 4096 
 
 typedef struct source_s {
     GSList* peers;
@@ -43,12 +44,12 @@ int tas   = 0;  /* Target AS */
 int counter = 0; /* Number of processed flows */
 int matched = 0; /* Number of matched flows */
 GSList* srclist; /* List of IP addresses belonging to the AS denoted tas */
-
+int srcmembers = 0;
 
 source_t* update_source_list(uint32_t ip);
 GSList* update_peer_list(GSList* peerlist, uint32_t ip);
 
-inline void process_record(master_record_t* r)
+int process_record(master_record_t* r)
 {
     source_t* src;
   //FIXME does not take into account replies from the servers
@@ -60,10 +61,15 @@ inline void process_record(master_record_t* r)
                 src->peers=update_peer_list(src->peers,r->v4.dstaddr);
                 src->members++;
             }
+        }else{
+            /* The source list is full tell process_record to stop */
+            return 0;    
         }
         matched++;
     }
     counter++;
+    /* It is assumed that everything went fine for this record */
+    return 1;
 }
 
 
@@ -171,15 +177,18 @@ source_t* update_source_list(uint32_t ip)
     }
     src = malloc(sizeof(source_t));
     if (src) {
-        src->ipv4addr = ip;
-        src->peers = NULL;
-        src->members = 0;
-        srclist = g_slist_prepend(srclist,src);
-        return (source_t*)srclist->data;
+        if (srcmembers < MAXSOURCES) {
+            src->ipv4addr = ip;
+            src->peers = NULL;
+            src->members = 0;
+            srclist = g_slist_prepend(srclist,src);
+            srcmembers++;
+            return (source_t*)srclist->data;
+        }
     } else{
         fprintf(stderr,"Cannot allocate memory");
     }
-    fprintf(stderr,"Something abnormal happend in update_source_list\n");
+    /* Something abnormal happend return an error */
     return NULL;
 }
 
@@ -204,7 +213,9 @@ int main (int argc, char* argv[])
                 if ( (r->flags & FLAG_IPV6_ADDR ) != 0 ) {
                     continue;
                 }
-                process_record(r);
+                if (!process_record(r)) {
+                    break;
+                }
             }           
         } while (r);
 
@@ -213,7 +224,10 @@ int main (int argc, char* argv[])
         printf("#Source AS number: %d\n",tas);
         printf("#Processed records: %d\n",counter);
         printf("#Matched records: %d\n",matched);
-        
+        printf("#Source list members: %d\n",srcmembers);
+        if (srcmembers == MAXSOURCES){
+            printf("#Warning: Source list is truncated\n");
+        }      
         /* Close the nfcapd file and free up internal states */
         libcleanup(states);
         //TODO free up the used memory
