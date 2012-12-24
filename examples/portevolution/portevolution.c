@@ -22,7 +22,7 @@
 
 #include <libnfdump/libnfdump.h>
 #define TCP 6
-#define MAXPEERS 4096
+#define MAXPEERS 10
 #define MAXSOURCES 4096 
 
 typedef struct source_s {
@@ -45,9 +45,10 @@ int counter = 0; /* Number of processed flows */
 int matched = 0; /* Number of matched flows */
 GSList* srclist; /* List of IP addresses belonging to the AS denoted tas */
 int srcmembers = 0;
+int missedpeers = 0; /* Number of missed peers */
 
 source_t* update_source_list(uint32_t ip);
-GSList* update_peer_list(GSList* peerlist, uint32_t ip);
+GSList* update_peer_list(source_t* src, uint32_t ip);
 
 int process_record(master_record_t* r)
 {
@@ -57,10 +58,7 @@ int process_record(master_record_t* r)
     if ((r->srcas == tas) && (r->dstport == iport)) {
         src = update_source_list(r->v4.srcaddr);
         if (src){
-            if (src->members<MAXPEERS) { 
-                src->peers=update_peer_list(src->peers,r->v4.dstaddr);
-                src->members++;
-            }
+            src->peers=update_peer_list(src,r->v4.dstaddr);
         }else{
             /* The source list is full tell process_record to stop */
             return 0;    
@@ -130,12 +128,13 @@ GSList* search_address(uint32_t ip)
     return NULL; 
 }
 
-GSList* update_peer_list(GSList* peerlist, uint32_t ip)
+GSList* update_peer_list(source_t* src, uint32_t ip)
 {
     GSList* item;
     peer_t* peer;
     GSList* nplist;
-    
+    GSList* peerlist;
+    peerlist = src->peers;
     item = peerlist;
     nplist = peerlist;
     while (item) {
@@ -152,14 +151,20 @@ GSList* update_peer_list(GSList* peerlist, uint32_t ip)
         }
     }
     /* The peer does not exists */
-    //TODO check max number of peers
-    peer = malloc(sizeof(peer_t));
-    if (peer){
-        peer->ipv4addr = ip; 
-        peer->score = 1;
-        nplist = g_slist_prepend(peerlist,peer);
-   }
-    /* If there is no memory no peer will be added */
+    if (src->members < MAXPEERS) {
+        peer = malloc(sizeof(peer_t));
+        if (peer) {
+            peer->ipv4addr = ip; 
+            peer->score = 1;
+            nplist = g_slist_prepend(peerlist,peer);
+            src->members++;
+        }
+    } else {
+        missedpeers++;
+    } 
+    /* If there is no memory or the peer list full no peer will be added 
+     * and the old lits is returned 
+     */
     return nplist;
 }
 
@@ -225,6 +230,7 @@ int main (int argc, char* argv[])
         printf("#Processed records: %d\n",counter);
         printf("#Matched records: %d\n",matched);
         printf("#Source list members: %d\n",srcmembers);
+        printf("#Number of missed peers: %d\n",missedpeers);
         if (srcmembers == MAXSOURCES){
             printf("#Warning: Source list is truncated\n");
         }      
