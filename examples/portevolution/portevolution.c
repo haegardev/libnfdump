@@ -149,7 +149,7 @@ GSList* update_peer_list(source_t* src, uint32_t ip)
                 // existing peer found
                 if (peer->ipv4addr == ip) {
                     peer->score++;
-                    return item;
+                    return peerlist;
                 }
             }
             item = item->next;
