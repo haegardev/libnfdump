@@ -33,7 +33,7 @@ typedef struct source_s {
 
 typedef struct peer_s {
     uint32_t ipv4addr;
-    int score;
+    int appearance; /* Parameter how many times the given IP address appeared */
     //TODO extend this with other features such as volume, packets per second
     //etc
 } peer_t;
@@ -106,7 +106,7 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%d ",peer->score);                    
+            printf("%d ",peer->appearance);                    
             item = item->next;
         }
     }
@@ -168,7 +168,7 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, uint32_t ip)
             if (peer) {
                 // existing peer found
                 if (peer->ipv4addr == ip) {
-                    peer->score++;
+                    peer->appearance++;
                     return peerlist;
                 }
             }
@@ -180,7 +180,7 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, uint32_t ip)
         peer = malloc(sizeof(peer_t));
         if (peer) {
             peer->ipv4addr = ip; 
-            peer->score = 1;
+            peer->appearance = 1;
             nplist = g_slist_prepend(peerlist,peer);
             src->peermembers++;
         }
