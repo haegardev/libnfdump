@@ -56,7 +56,10 @@ inline void process_record(master_record_t* r)
     if ((r->srcas == tas) && (r->dstport == iport)) {
         src = update_source_list(r->v4.srcaddr);
         if (src){
-            src->peers=update_peer_list(src->peers,r->v4.dstaddr);
+            if (src->members<MAXPEERS) { 
+                src->peers=update_peer_list(src->peers,r->v4.dstaddr);
+                src->members++;
+            }
         }
         matched++;
     }
