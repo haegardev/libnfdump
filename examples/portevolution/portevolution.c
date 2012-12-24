@@ -5,7 +5,7 @@
  *
  * Example:
  * If you want to know how many hosts in your as connect to other hosts in 
- * other AS numbers on port 22, then tas = 0 and iport = 80.
+ * other AS numbers on port 22, then tas = 0 and iport = 22.
  */
 
 #include <stdio.h>
