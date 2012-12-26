@@ -16505,7 +16505,10 @@ echo "* Please send bug reports back to me: phaag@users.sourceforge.net"
 echo "* or to one of the lists."
 if  test "$enable_libnfdump" = "yes"; then
     echo "*"
-    echo "*Thank you for using libnfdump"
+    echo "*Thank you for using libnfdump."
+    echo "*"
+    echo "*The documentation is in the libnfdump man page."
+    echo "*"
     echo "*Please note that libnfdump is experimental. Comments are welcome."
-    echo "*Contact me at haegardev@gmail.com"
+    echo "*Contact me at haegardev@gmail.com."
 fi

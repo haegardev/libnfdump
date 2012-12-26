@@ -450,7 +450,6 @@ nftest_DEPENDENCIES = nfgen
 #of http://www.gnu.org/software/automake/manual/html_node/Objects-created-both-with-libtool-and-without.html
 #Therefore, symlinks are used to get other c files
 @LIBNFDUMP_TRUE@libnfdump_la_SOURCES = libnfdump.c libnffile.c libflist.c libutil.c libminilzo.c libnfx.c 
-#include_HEADERS = nffile.h libnfdump.h
 @LIBNFDUMP_TRUE@nobase_include_HEADERS = libnfdump/nffile.h libnfdump/libnfdump.h
 EXTRA_DIST = inline.c collector_inline.c nffile_inline.c nfdump_inline.c heapsort_inline.c applybits_inline.c test.sh nfdump.test.out parse_csv.pl
 CLEANFILES = lex.yy.c grammar.c grammar.h scanner.c scanner.h
