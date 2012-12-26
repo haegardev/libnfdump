@@ -19,7 +19,7 @@ nfdump-1.6.2$ make
 nfdump-1.6.2$ make install
 
 
-Testing libnfcapd
+Testing libnfdump
 =================
 nfdump-1.6.2/bin/testlibnfdump <full_path_to_library> <nfcapd_file>
 
