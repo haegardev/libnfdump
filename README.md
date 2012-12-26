@@ -39,5 +39,10 @@ Description
 
 The initlib functions returns a structure of states of an instance of libnfdump. 
 On errors NULL is returned. The function get_next_record returns the 
-next enountered record.  If there are no records NULL is returned.
+next encountered record.  If there are no records NULL is returned.
+
+More details can be found in the libnfdump wiki.
+https://github.com/haegardev/libnfdump/wiki
+
+ 
  
