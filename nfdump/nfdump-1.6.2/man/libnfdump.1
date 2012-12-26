@@ -1,0 +1,269 @@
+.TH libnfdump 2012\-12\-26 "" ""
+.SH NAME
+libnfdump \- library to natively access netflow records stored by nfcapd
+.SH SYNOPSIS
+.P
+.TP 3
+#include <libnfdump/libnfdump.h>
+.P
+libnfstates_t* initlib(char* Mdirs, char* rfile, char* Rfile)
+.P
+master_record_t* get_next_record(libnfstates_t* states)
+.P
+void print_record(void* record)
+.P
+void libcleanup(libnfstates_t* states)
+
+.SH DESCRIPTION
+.B libnfdump
+The program nfreader of nfdump-1.6.2 was mutated the library libnfdump. The
+goal is to access directly from external programs the 
+.BR master_record_t
+structure without having to pass through standard output and standard
+input or other temporary files. In addition, only a minimal amount of unused 
+operations should be done on netflow records in order to gain in performance.
+For instance, the conversion of an IP address to dotted decimal notation is
+not necessarily useful if the IP address can be processed in its binary form.  
+.P
+This library is based on 
+.B nfreader.c 
+from nfdump-1.6.2. Hence, all potential restriction related to 
+nfdump-1.6.2 are still applicable for libnfdump. Multiple libnfdump 
+instances could be used in parallel. However, the functions 
+themselves are not thread save.
+.P
+.TP 3 
+.B \fI libnfstates_t* initlib(char* Mdirs, char* rfile, char* Rfile)
+Initialize a libnfdump instance. This function takes three strings as 
+pararameters. The 
+.B Mdirs
+parameter corresponds to the 
+.B -M 
+option of nfdump,
+the 
+.B rfile
+parameter corresponds to the 
+.B -r 
+option of nfdump and the 
+.B Rfile
+argument corresponds to the 
+.B -R
+option of nfdump. Only one parameter should
+be used and the other parameters should set to NULL.  For instance, if only 
+the file nfcapd.201212261503 should be opened, the following parameters are set
+for initlib ( NULL, nfcapd.201212261503, NULL ).  On success a pointer to 
+libnfstates_t structure is returned and when there was an error,
+NULL is returned. 
+.P
+.TP 3
+.B \fI master_record_t* get_next_record(libnfstates_t* states)
+This function can be used in a loop to access the netflow records without any
+interpretation. A pointer to the master_record structure is returned which is
+defined in
+.B nffile.h. 
+If no record is available NULL is returned.
+.P
+.TP 3
+.B \fI void print_record(void* record) 
+A
+.B master_record_t*
+pointer can be passed to this function. This function 
+prints the records in human readable format and is meant for debugging only 
+because not all the fields are printed. The function was taken from 
+.B
+nfreader.c
+included in nfdump-1.6.2.
+.P
+.TP 3
+.B \fI void libcleanup(libnfstates_t* states)
+Frees data structures and file descriptors used by the libnfdump instances 
+identified by the libnfstates_t data structure.
+
+.SH master_record_t 
+The full
+.B master_record_t
+structure is defined in the file
+.B nffile.h. 
+A few fields with their types are listed below. The destination port of a flow
+can be printed like printf("%d",rec->dstport) assuming that the 
+.B rec
+is a 
+pointer to a 
+.B master_record_t
+structure. The definitions of 
+.B stdint.h
+are used.
+.TP 16
+.B uint32_t
+\fIipv4.srcaddr
+.TP 16
+.B uint32_t
+\fIipv4.dstaddr
+.TP 16
+.B uint64_t
+\fIipv6.srcaddr
+.TP 16
+.B uint64_t
+\fIipv6.dstaddr
+.TP 16 
+.B uint16_t
+\fIsrcport
+.TP 16 
+.B uint16_t
+\fIdstport
+.TP 16
+.B uint16_t
+\fImsec_first
+.TP 16 
+.B uint16_t
+\fImsec_last
+.TP 16
+.B uint32_t
+\fIfirst
+.TP 16
+.B uint32_t
+\fIlast
+.TP 16
+.B uint16_t
+\fItype
+.TP 16 
+.B uint16_t 
+\fIsize
+.TP 16
+.B uint8_t 
+\fIflags
+.TP 16
+.B uint8_t 
+\fIexporter_ref
+.TP 16
+.B uint16_t
+\fIext_map
+.TP 16
+.B uint8_t
+\fIfwd_status
+.TP 16
+.B uint8_t
+\fItcp_flags
+.TP 16
+.B uint8_t
+\fIprot
+.TP 16
+.B uint8_t
+\fItos
+.TP 16
+.B uint32_t
+\fIinput
+.TP 16
+.B uint32_t
+\fIoutput			
+.TP 16
+.B uint32_t
+\fIsrcas
+.TP 16
+.B uint32_t
+\fIdstas
+.TP 16
+.B uint64_t
+\fIdPkts
+.TP 16
+.B uint64_t
+\fIdOctets
+.TP 16
+.B ip_addr_t
+\fIip_nexthop
+.TP 16
+.B ip_addr_t
+\fIbgp_nexthop
+.TP 16
+.B uint16_t
+\fIsrc_vlan
+.TP 16
+.B uint16_t
+\fIdst_vlan
+.TP 16
+.B uint64_t
+\fIout_pkts
+.TP 16
+.B uint64_t
+\fIout_bytes
+.TP 16
+.B uint64_t
+\fIaggr_flows
+.TP 16
+.B uint64_t
+\fIin_src_mac
+.TP 16
+.B uint64_t
+\fIout_dst_mac
+.TP 16
+.B uint64_t
+\fIin_dst_mac
+.TP 16
+.B uint64_t
+\fIout_src_mac
+.TP 16
+.B uint32_t
+\fImpls_label[10]
+.TP 16
+.B ip_addr_t
+\fIip_router
+.TP 16
+.B uint8_t
+\fIengine_type
+.TP 16
+.B uint8_t
+\fIengine_id
+.TP 3 
+.B union uint32_t any
+.TP 16 
+.B uint8_t
+\fIdst_tos
+.TP 16 
+.B uint8_t
+\fIdir
+.TP 16 
+.B uint8_t
+\fIsrc_mask
+.TP 16 
+.B uint8_t
+\fIdst_mask
+
+.TP 3 User extensions
+.TP 16
+.B uint64_t	
+\fIu64_1
+.TP 16
+.B uint32_t	
+\fIu32_1
+.TP 16
+.B uint32_t
+\fIu32_2
+.SH EXAMPLE 
+.TP 3
+#include <libnfdump/libnfdump.h>
+.TP 3
+int main(int argc, char* argv[])
+{
+    master_record_t* rec;
+    libnfstates_t* states;
+    
+    states = initlib(NULL, argv[1], NULL);
+    if (states) {
+       rec = get_next_record(states);
+       if (rec) {
+           print_record(rec);
+       }
+       libcleanup(states);
+    }    
+    return 0;
+
+}
+
+.SH AUTHOR
+Gerard Wagener
+.SH "SEE ALSO"
+nfdump(1), nfprofile(1), nfreplay(1), nfcapd(1)
+.SH BUGS
+This software is not written by the original author of nfdump. Hence, it might
+be that I misunderstood some parts. Please report any bugs to me, I might fix
+them on best effort basis (haegardev@gmail.com or via github haegardev).
