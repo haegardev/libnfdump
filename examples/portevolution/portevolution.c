@@ -184,8 +184,6 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
         if (peer) {
             peer->ipv4addr = r->v4.dstaddr; 
             peer->appearance = 1;
-            /* FIXME Check if the right fields are used? */
-            /* FIXME change data type to uint64_t */
             peer->duration = r->last - r->first; 
             peer->packets = r->dPkts + r->out_pkts; 
             nplist = g_slist_prepend(peerlist,peer);
