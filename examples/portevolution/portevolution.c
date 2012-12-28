@@ -107,8 +107,7 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            //FIXME %d is not suited for uint_64
-            printf("%d ",peer->appearance);                    
+            printf("%llu ",peer->appearance);                    
             item = item->next;
         }
     }
