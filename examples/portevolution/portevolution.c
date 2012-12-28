@@ -34,13 +34,8 @@ typedef struct source_s {
 typedef struct peer_s {
     uint32_t ipv4addr;
     uint64_t appearance; /* Parameter how many times the given IP appeared */
-    uint64_t duration;
-    uint64_t packets;
-    uint64_t bytes;
-    uint64_t flows;
-    uint64_t pps;
-    uint64_t bps;
-    uint64_t fowarded;
+    uint64_t duration; /* The total amount of durations */
+    uint64_t packets; /* The total amount of packets */
     /* Put here your other features that should be recorded */
 } peer_t;
 
@@ -178,8 +173,6 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
                     peer->appearance++;
                     peer->duration+=(r->last - r->first);
                     peer->packets+=r->dPkts + r->out_pkts;
-                    peer->bytes+=r->dOctets + r->out_bytes;
-                    peer->flows+=r->aggr_flows;  
                     return peerlist;
                 }
             }
@@ -196,11 +189,6 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
             /* FIXME change data type to uint64_t */
             peer->duration = r->last - r->first; 
             peer->packets = r->dPkts + r->out_pkts; 
-            peer->bytes= r->dOctets + r->out_bytes;
-            peer->flows=r->aggr_flows;
-            peer->pps=-1; /* TODO Does this field has to be computed? */
-            peer->bps=-1; /* TODO Does this filed has to be computed? */
-            peer->fowarded=-1; /* This mask must be interpreted?*/
             nplist = g_slist_prepend(peerlist,peer);
             src->peermembers++;
         }
