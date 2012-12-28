@@ -67,7 +67,6 @@ source_t* update_source_list(portevolution_t* pe, uint32_t ip);
 int process_record(portevolution_t* pe, master_record_t* r)
 {
     source_t* src;
-  //FIXME does not take into account replies from the servers
     /* Test if host from AS tas connects to port iport in other AS */
     if ((r->srcas == pe->tas) && (r->dstport == pe->iport)) {
         src = update_source_list(pe, r->v4.srcaddr);
