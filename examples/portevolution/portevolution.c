@@ -1,4 +1,21 @@
-/* This examples shows how libnfdump can be used to determine the evolution 
+/*
+ *   Evolution of the usage of a port in another AS  from an nfcapd file
+ *   Copyright (C) 2012  Gerard Wagener
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Affero General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Affero General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * This examples shows how libnfdump can be used to determine the evolution 
  * of a given port denoted iport. If a host belonging to a given AS number 
  * denoted targeted AS, and if this host interacts with an host x in another
  * AS on iport, then this interaction is recorded.   
@@ -6,11 +23,12 @@
  * Example:
  * If you want to know how many hosts in your as connect to other hosts in 
  * other AS numbers on port 22, then tas = 0 and iport = 22.
- */
-/* TODO add support to handle more sourcelist such that more than 1 protocol 
+ *
+ * TODO add support to handle more sourcelist such that more than 1 protocol 
  * canbe analyzed at the same time.
  * TODO export the data as json such that it can be sorted reprocessed via
  * other programming languages
+ * TODO Put these functions in a library
  */ 
 #include <stdio.h>
 #include <stdlib.h>
