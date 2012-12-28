@@ -7,7 +7,11 @@
  * If you want to know how many hosts in your as connect to other hosts in 
  * other AS numbers on port 22, then tas = 0 and iport = 22.
  */
-
+/* TODO add support to handle more sourcelist such that more than 1 protocol 
+ * canbe analyzed at the same time.
+ * TODO export the data as json such that it can be sorted reprocessed via
+ * other programming languages
+ */ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
