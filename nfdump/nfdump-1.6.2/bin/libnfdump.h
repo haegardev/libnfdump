@@ -30,6 +30,10 @@
 #ifndef _LIBNFREADER_H
 #define _LIBNFREADER_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <libnfdump/nffile.h>
 typedef struct libnfstates {
@@ -57,5 +61,9 @@ libnfstates_t* initlib(char* Mdirs, char* rfile, char* Rfile);
 void libcleanup(libnfstates_t* states);
 
 master_record_t* get_next_record(libnfstates_t* states);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
