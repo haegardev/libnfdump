@@ -73,6 +73,7 @@
 
 /* Global vars */
 extern char *CurrentIdent;
+static int cnt;
 
 
 /*
@@ -979,11 +980,15 @@ char *GetCurrentFilename(void) {
 	return current_file;
 } // End of GetCurrentFilename
 
+void InitFileCnt(void)
+{
+    cnt = 0;
+}
+
 int GetNextFile(int current, time_t twin_start, time_t twin_end, stat_record_t **stat_record) {
 stat_record_t *stat_ptr;
 char *error;
 int fd;
-static int cnt;
 
 	// is it first time init ?
 	if ( current < 0 ) {

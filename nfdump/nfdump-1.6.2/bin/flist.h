@@ -46,4 +46,5 @@ int SetupSubDir(char *dir, char *subdir, char *error, size_t errlen );
 
 int GetNextFile(int current, time_t twin_start, time_t twin_end, stat_record_t **stat_record);
 
+void InitFileCnt(void);
 #endif //_FLIST_H

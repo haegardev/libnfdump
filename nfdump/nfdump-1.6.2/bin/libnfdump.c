@@ -171,7 +171,7 @@ libnfstates_t* initlib(char* Mdirs, char* rfile, char* Rfile)
     InitExtensionMaps(&extension_map_list);
    	SetupInputFileSequence(Mdirs, rfile, Rfile);
 
-    
+    InitFileCnt(); 
 	states->rfd = GetNextFile(0, 0, 0, NULL);
 	if ( states->rfd < 0 ) {
 		if ( states->rfd == FILE_ERROR )
