@@ -59,6 +59,12 @@ typedef struct peer_s {
     uint64_t appearance; /* Parameter how many times the given IP appeared */
     uint64_t duration; /* The total amount of durations */
     uint64_t packets; /* The total amount of packets */
+    uint64_t input;
+    uint16_t output;
+    uint64_t dPkts;
+    uint64_t dOctets;
+    uint64_t out_pkts;
+    uint64_t out_bytes;
     /* Put here your other features that should be recorded */
 } peer_t;
 
@@ -194,6 +200,13 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
                     peer->appearance++;
                     peer->duration+=(r->last - r->first);
                     peer->packets+=r->dPkts + r->out_pkts;
+                    peer->input+=r->input;
+                    peer->output+=r->output;
+                    peer->dPkts+= r->dPkts;
+                    peer->dOctets+= r->dOctets;
+                    peer->out_pkts+= r->out_pkts;
+                    peer->out_bytes+= r->out_bytes;
+            nplist = g_slist_prepend(peerlist,peer);
                     return peerlist;
                 }
             }
@@ -207,7 +220,13 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
             peer->ipv4addr = r->v4.dstaddr; 
             peer->appearance = 1;
             peer->duration = r->last - r->first; 
-            peer->packets = r->dPkts + r->out_pkts; 
+            peer->packets = r->dPkts + r->out_pkts;
+            peer->input = r->input;
+            peer->output = r->output;
+            peer->dPkts  = r->dPkts;
+            peer->dOctets = r->dOctets;
+            peer->out_pkts = r->out_pkts;
+            peer->out_bytes = r->out_bytes;
             nplist = g_slist_prepend(peerlist,peer);
             src->peermembers++;
         }
