@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <glib.h>
+#include <getopt.h>
 
 #include <libnfdump/libnfdump.h>
 #define TCP 6
@@ -318,5 +319,64 @@ void usage (void)
 
 int main (int argc, char* argv[])
 {
+    int next_option = 0;
+    const char* const short_options = "ha:p:w:r:";
+    const struct option long_options[] = {
+                { "help", 0, NULL, 'h' },
+                { "as", 1, NULL, 'a' },
+                { "port", 1, NULL, 'p' },
+                { "write", 1, NULL, 'w'},
+                { "read",1, NULL, 'r'},
+                {NULL,0,NULL,0}};
+    char* nffile = NULL;
+    char* resfile = NULL;
+    uint16_t as = 0;
+    uint32_t port = 0;     
+
+    do {
+        next_option = getopt_long (argc, argv, short_options, 
+                                   long_options, NULL);
+        if (next_option > 0) {
+            switch(next_option)
+            {
+            case 'h':
+                usage();
+                return EXIT_SUCCESS;
+            case 'a':
+                as = atoi(optarg);
+                break;
+            case 'p':
+                port = atoi(optarg);
+                break;
+            case 'w':
+                resfile = optarg;
+                break;
+            case 'r':
+                nffile = optarg;
+                break; 
+            default:
+                /* Something unexpected happended */
+                return EXIT_FAILURE;
+            }
+        }
+    } while(next_option != -1);
+
+    /* Check parameters */
+    if (!port) {
+        fprintf(stderr,"A port number must be specified\n");
+        return EXIT_FAILURE;
+    }
+    
+    if (!nffile) {
+        fprintf(stderr,"An nfcapd filename must be specified\n");
+        return EXIT_FAILURE;
+    }
+
+    if (!resfile) {
+        fprintf(stderr,"A result filename must be specified\n");
+        return EXIT_FAILURE;
+    }
+    
+        
     return EXIT_SUCCESS;
 } 
