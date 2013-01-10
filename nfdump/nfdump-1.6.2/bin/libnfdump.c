@@ -201,7 +201,7 @@ void libcleanup(libnfstates_t* states)
 	if ( states->rfd > 0 ) 
 		close(states->rfd);
 
-	free((void *)states->in_buff);
+	free(states->in_buff);
 
 	PackExtensionMapList(&extension_map_list);
 }
