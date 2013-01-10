@@ -299,6 +299,23 @@ int process_nfcapd_file(char* nffile, char* jsfile, uint16_t port, uint16_t as)
     return(EXIT_SUCCESS);
 }
 
+void usage (void)
+{
+    printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
+"Usage portevolution [-h] [-a X -p P -w]  ", 
+"Do some accounting from all the hosts belong to an AS X that connect to AS Y",
+"on port P.",
+"\nOPTIONS\n"
+"   -h --help   shows this screen\n"
+"   -a --as     specify the source AS number",
+"   -p --port   sepcify the destination port on a host in another AS",
+"   -w --write  specify the target file where the results are written",
+"\nAUTHOR",
+"   Gerard Wagener (2013)",
+"\nLICENSE",
+"   GNU Affero General Public License");
+}
+
 int main (int argc, char* argv[])
 {
     return EXIT_SUCCESS;
