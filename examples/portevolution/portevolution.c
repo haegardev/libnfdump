@@ -249,7 +249,7 @@ source_t* update_source_list(portevolution_t* pe, uint32_t ip)
     return NULL;
 }
 
-int process_nfcapd_file(char* nffile, char* jsfile, uint16_t port, uint16_t as)
+int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
 {
 
     libnfstates_t* states;
@@ -257,7 +257,7 @@ int process_nfcapd_file(char* nffile, char* jsfile, uint16_t port, uint16_t as)
     portevolution_t* pe; 
 
     /* Either nffilename or jsfilename was not specified */
-    if (!(nffile && jsfile))
+    if (!(nffile && resfile))
         return EXIT_FAILURE;
 
     /* Initialize libnfdump */
