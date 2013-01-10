@@ -248,19 +248,21 @@ source_t* update_source_list(portevolution_t* pe, uint32_t ip)
     return NULL;
 }
 
-int main (int argc, char* argv[])
+int process_nfcapd_file(char* nffile, char* jsfile, uint16_t port, uint16_t as)
 {
+
     libnfstates_t* states;
     master_record_t* r;
     portevolution_t* pe; 
-    if (argc != 2) {
-        fprintf(stderr,"An nfcapd file needs to be passed as command line argument\n");
-        return (EXIT_FAILURE);
-    }
+
+    /* Either nffilename or jsfilename was not specified */
+    if (!(nffile && jsfile))
+        return EXIT_FAILURE;
+
     /* Initialize libnfdump */
-    states = initlib(NULL, argv[1],NULL);
+    states = initlib(NULL, nffile, NULL);
     /* Initialize port evolution */
-    pe = initevolution(25,0);
+    pe = initevolution(port,as);
  
     if (states) {
         do {
@@ -295,4 +297,9 @@ int main (int argc, char* argv[])
         //TODO free up memory
     }
     return(EXIT_SUCCESS);
+}
+
+int main (int argc, char* argv[])
+{
+    return EXIT_SUCCESS;
 } 
