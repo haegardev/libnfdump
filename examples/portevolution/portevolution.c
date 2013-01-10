@@ -377,6 +377,7 @@ int main (int argc, char* argv[])
         return EXIT_FAILURE;
     }
     
+    process_nfcapd_file(nffile, resfile, port, as);
         
     return EXIT_SUCCESS;
 } 
