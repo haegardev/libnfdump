@@ -129,7 +129,7 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%llu ",peer->appearance);                    
+            printf("%lu ",peer->appearance);                    
             item = item->next;
         }
     }
