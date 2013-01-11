@@ -151,7 +151,7 @@ void print_source_list(portevolution_t* pe)
     source_t* src;
     item = pe->srclist;
     char as[40];
-    printf("[");
+    printf("[{\"data\":[");
     while (item != NULL){
         if (item){
             src = (source_t*)item->data;
@@ -168,7 +168,7 @@ void print_source_list(portevolution_t* pe)
             item = item->next; 
         }
     }
-    printf("]\n");
+    printf("]},");
  }
 
 GSList* search_address(portevolution_t* pe, uint32_t ip)
@@ -305,20 +305,23 @@ int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
         } while (r);
 
         print_source_list(pe);
-        //FIXME This breaks the json
-        //printf("#Inspected port: %d\n",pe->iport);
-        //printf("#Source AS number: %d\n",pe->tas);
-        //printf("#Processed records: %d\n",pe->counter);
-        //printf("#Matched records: %d\n",pe->matched);
-        //printf("#Source list members: %d\n",pe->srcmembers);
-        //if (pe->srcmembers == MAXSOURCES){
-        //    printf("#Warning: Source list is truncated\n");
-        //}      
-        //printf("#Number of missed peers: %d\n",pe->missedpeers);
-        //printf("#Number of full peer lists: %d\n", pe->fullpeerlists);
-        //printf("#Full peer list ratio: %.2f\n",
-        //       (float) pe->fullpeerlists / (float) pe->srcmembers); 
+        /* Export metadata about processing aswell */
+        printf("{\"Inspected Port\":%d},",pe->iport);
+        printf("{\"Source ASN\":%d},",pe->tas);
+        printf("{\"Processed Records\":%d},",pe->counter);
+        printf("{\"Matched Records\":%d},",pe->matched);
+        printf("{\"Source List Members\":%d},",pe->srcmembers);
+        if (pe->srcmembers == MAXSOURCES){
+            printf("{\"Truncated Source List\":true},");
+        } else { 
+            printf("{\"Truncated Source List\":false},");
+        }
+        printf("{\"Number of missed peers\":%d},",pe->missedpeers);
+        printf("{\"Number of full peer lists\":%d},", pe->fullpeerlists);
+        printf("{\"Full peer list ratio\":%.2f}",
+               (float) pe->fullpeerlists / (float) pe->srcmembers); 
 
+        printf("]\n");
         /* Close the nfcapd file and free up internal states */
         libcleanup(states);
         //TODO free up memory
