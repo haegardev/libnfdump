@@ -132,14 +132,17 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     GSList* item;
     peer_t* peer;
     item = peers;
+    printf("{\"packets\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%lu ",peer->appearance);                    
+            printf("%lu",peer->appearance);                    
+            if (item->next)
+                printf(",");
             item = item->next;
         }
     }
-    printf("\n");
+    printf("]}]}");
 }
 
 void print_source_list(portevolution_t* pe)
@@ -148,7 +151,7 @@ void print_source_list(portevolution_t* pe)
     source_t* src;
     item = pe->srclist;
     char as[40];
-
+    printf("[");
     while (item != NULL){
         if (item){
             src = (source_t*)item->data;
@@ -158,11 +161,14 @@ void print_source_list(portevolution_t* pe)
             }
             src->ipv4addr = htonl(src->ipv4addr);
             inet_ntop(AF_INET, &src->ipv4addr, as, sizeof(as));
-            printf("%s %d ", as,src->peermembers);
+            printf("{\"%s\":[{\"num_peers\":%d},", as,src->peermembers);
             print_peer_scores(pe, src->peers);
+            if (item->next)
+                printf(",\n");
             item = item->next; 
         }
     }
+    printf("]\n");
  }
 
 GSList* search_address(portevolution_t* pe, uint32_t ip)
@@ -299,18 +305,19 @@ int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
         } while (r);
 
         print_source_list(pe);
-        printf("#Inspected port: %d\n",pe->iport);
-        printf("#Source AS number: %d\n",pe->tas);
-        printf("#Processed records: %d\n",pe->counter);
-        printf("#Matched records: %d\n",pe->matched);
-        printf("#Source list members: %d\n",pe->srcmembers);
-        if (pe->srcmembers == MAXSOURCES){
-            printf("#Warning: Source list is truncated\n");
-        }      
-        printf("#Number of missed peers: %d\n",pe->missedpeers);
-        printf("#Number of full peer lists: %d\n", pe->fullpeerlists);
-        printf("#Full peer list ratio: %.2f\n",
-               (float) pe->fullpeerlists / (float) pe->srcmembers); 
+        //FIXME This breaks the json
+        //printf("#Inspected port: %d\n",pe->iport);
+        //printf("#Source AS number: %d\n",pe->tas);
+        //printf("#Processed records: %d\n",pe->counter);
+        //printf("#Matched records: %d\n",pe->matched);
+        //printf("#Source list members: %d\n",pe->srcmembers);
+        //if (pe->srcmembers == MAXSOURCES){
+        //    printf("#Warning: Source list is truncated\n");
+        //}      
+        //printf("#Number of missed peers: %d\n",pe->missedpeers);
+        //printf("#Number of full peer lists: %d\n", pe->fullpeerlists);
+        //printf("#Full peer list ratio: %.2f\n",
+        //       (float) pe->fullpeerlists / (float) pe->srcmembers); 
 
         /* Close the nfcapd file and free up internal states */
         libcleanup(states);
