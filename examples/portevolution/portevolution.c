@@ -26,8 +26,7 @@
  *
  * TODO add support to handle more sourcelist such that more than 1 protocol 
  * canbe analyzed at the same time.
- * TODO export the data as json such that it can be sorted reprocessed via
- * other programming languages
+ * TODO export other fields aswell input, output
  * TODO Put these functions in a library
  */ 
 #include <stdio.h>
