@@ -14,11 +14,6 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This examples shows how libnfdump can be used to determine the evolution 
- * of a given port denoted iport. If a host belonging to a given AS number 
- * denoted targeted AS, and if this host interacts with an host x in another
- * AS on iport, then this interaction is recorded.   
- *
  * The generated file can then be compressed with gzip or zlib
  */ 
 #include <stdio.h>
@@ -54,6 +49,15 @@ typedef struct nfrecord_s{
     uint8_t prot; 
     uint64_t dPkts;
     uint64_t dOctets;
+    uint32_t srcas;
+    uint32_t dstas;
+    uint64_t out_pkts;
+    uint64_t out_bytes;
+    /* align structure to better fill page tables *
+     * These bytes could be filles with something more useful such as flow 
+     * duration etc
+     */
+    uint8_t padding[32];
 } nfrecord_t;
 
 int main (int argc, char* argv[])
@@ -114,11 +118,16 @@ int main (int argc, char* argv[])
                 /* Copy packets and Octects */
                 srec->dPkts = r->dPkts;
                 srec->dOctets = r->dOctets;
+                srec->out_pkts = r->out_pkts;
+                srec->out_bytes = r->out_bytes;
                 /* Save the structure in the file */
                 i = fwrite(srec, sizeof(nfrecord_t),1, fp) != sizeof(nfrecord_t);
                 if (i != 1) {
                     fprintf(stderr,"The outputfile is incomplete!\n");
                 }
+                /* Copy AS information */
+                srec->srcas = r->srcas;
+                srec->dstas = r->dstas;
             }
         } while (r);
         fclose(fp);    
