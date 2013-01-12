@@ -116,7 +116,7 @@ int main (int argc, char* argv[])
                 srec->dOctets = r->dOctets;
                 /* Save the structure in the file */
                 i = fwrite(srec, sizeof(nfrecord_t),1, fp) != sizeof(nfrecord_t);
-                if (i != 2) {
+                if (i != 1) {
                     fprintf(stderr,"The outputfile is incomplete!\n");
                 }
             }
