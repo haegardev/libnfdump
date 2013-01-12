@@ -73,7 +73,7 @@ int main (int argc, char* argv[])
         fprintf(stderr, "No memory\n");
         return EXIT_FAILURE;
     }
-    printf("sizeof(nfrecord_t) %d",sizeof(nfrecord_t));
+    printf("sizeof(nfrecord_t) %d\n",sizeof(nfrecord_t));
     /* Initialize libnfdump */
     states = initlib(NULL, argv[1],NULL);
  
@@ -83,7 +83,8 @@ int main (int argc, char* argv[])
         if (!fp){
             fprintf(stderr,"Failed to open target file\n");
             goto out;
-        }    
+        }
+        printf("Opened test.dat ..\n");    
         do {
             r = get_next_record(states);
             if (r) {
@@ -121,6 +122,7 @@ int main (int argc, char* argv[])
             }
         } while (r);
         fclose(fp);    
+        printf("Storage done. You could compress the file test.dat with gzip or zlib.\n");
         out:
         /* Close the nfcapd file and free up internal states */
         free(srec);
