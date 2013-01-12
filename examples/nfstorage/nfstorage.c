@@ -41,14 +41,26 @@ typedef union addr_s {
         uint64_t ipv6[2];
 } addr_t;
     
+/* Consumes 72 bytes instead of 256 */
 typedef struct nfrecord_s{
     uint8_t  ipversion;
     addr_t srcaddr;
     addr_t dstaddr;
+    uint16_t srcport;
+    uint16_t dstport;
+    uint16_t msec_first;
+    uint16_t msec_last;
+    uint32_t first;
+    uint32_t last;
+    uint8_t prot; 
+    uint64_t dPkts;
+    uint64_t dOctets;
 } nfrecord_t;
 
 int main (int argc, char* argv[])
 {
+    FILE* fp;
+    int i;
     libnfstates_t* states;
     master_record_t* r;
     nfrecord_t* srec;
@@ -60,12 +72,19 @@ int main (int argc, char* argv[])
     srec = calloc(sizeof(nfrecord_t),1);
     if (!srec) {
         fprintf(stderr, "No memory\n");
+        return EXIT_FAILURE;
     }
+    printf("sizeof(nfrecord_t) %d",sizeof(nfrecord_t));
     /* Initialize libnfdump */
     states = initlib(NULL, argv[1],NULL);
-    /* Initialize port evolution */
  
     if (states) {
+        /* Open target file */
+        fp = fopen("test.dat","w");
+        if (!fp){
+            fprintf(stderr,"Failed to open target file\n");
+            goto out;
+        }    
         do {
             r = get_next_record(states);
             if (r) {
@@ -83,10 +102,27 @@ int main (int argc, char* argv[])
                     srec->srcaddr.ipv4 = r->v4.srcaddr;
                     srec->dstaddr.ipv4 = r->v4.dstaddr;
                 }
-            }           
+                /* Copy source port */
+                srec->srcport = r->srcport;
+                /* Copy destination port */
+                srec->dstport = r->dstport;
+                /* Copy time stamp information */
+                srec->msec_first = r->msec_first;
+                srec->msec_last = r->msec_last;  
+                /* Copy protocol */          
+                srec->prot = r->prot;
+                /* Copy packets and Octects */
+                srec->dPkts = r->dPkts;
+                srec->dOctets = r->dOctets;
+                /* Save the structure in the file */
+                i = fwrite(srec, sizeof(nfrecord_t),1, fp) != sizeof(nfrecord_t);
+                if (i != 2) {
+                    fprintf(stderr,"The outputfile is incomplete!\n");
+                }
+            }
         } while (r);
-
-
+        fclose(fp);    
+        out:
         /* Close the nfcapd file and free up internal states */
         libcleanup(states);
         //TODO free up memory
