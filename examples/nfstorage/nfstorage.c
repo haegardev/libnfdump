@@ -123,8 +123,8 @@ int main (int argc, char* argv[])
         fclose(fp);    
         out:
         /* Close the nfcapd file and free up internal states */
+        free(srec);
         libcleanup(states);
-        //TODO free up memory
     }
     return(EXIT_SUCCESS);
 } 
