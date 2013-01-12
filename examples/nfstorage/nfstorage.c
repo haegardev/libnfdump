@@ -1,4 +1,6 @@
 /*
+ *   Example to reduce the the storage of netflow records
+ * 
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
@@ -17,10 +19,7 @@
  * denoted targeted AS, and if this host interacts with an host x in another
  * AS on iport, then this interaction is recorded.   
  *
- * Example:
- * If you want to know how many hosts in your as connect to other hosts in 
- * other AS numbers on port 22, then tas = 0 and iport = 22.
- *
+ * The generated file can then be compressed with gzip or zlib
  */ 
 #include <stdio.h>
 #include <stdlib.h>
