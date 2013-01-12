@@ -34,8 +34,23 @@ typedef union addr_s {
         uint32_t ipv4;
         uint64_t ipv6[2];
 } addr_t;
-    
-/* Consumes 72 bytes instead of 256 */
+
+/* Directory of currently used nfrecord_t buffers */
+typedef union addr_dir_s {
+    addr_t addr;
+    uint32_t n_flows; 
+    /* n_flows is the number of flows in the buffer and is used to determine
+     * if the buffer is full and needs to be swapped
+     */
+    uint64_t last_cnt; /* Last value of the flow counter */
+    /* Each flow record correspond to a number. Each time a flow is put is
+     * put in the buffer the value of the counter is also saved. Hence,
+     * the swap routine is able to determine buffers that were not updated
+     * for a long time
+     */
+} addr_dir_t;
+
+/* Consumes 128 bytes instead of 256 */
 typedef struct nfrecord_s{
     uint8_t  ipversion;
     addr_t srcaddr;
