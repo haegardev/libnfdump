@@ -29,7 +29,7 @@
 #include <glib.h>
 #include <string.h>
 #include <libnfdump/libnfdump.h>
-
+#include <assert.h>
 
 /* Attributes related to one instance of nfstorage */
 typedef struct nfstorage_s {
@@ -90,6 +90,43 @@ void create_addr_directory(nfstorage_t* nfs, uint32_t maxsize) {
     nfs->addrlst = NULL; 
 }
 
+void copy_fields(nfrecord_t* srec, master_record_t* r)
+{
+    assert(srec && r);    
+   
+    if ( (r->flags & FLAG_IPV6_ADDR ) != 0 ) {
+        /* Copy IPv6 source address */
+        srec->ipversion = 6;
+        srec->srcaddr.ipv6[0] = r->v6.srcaddr[0];
+        srec->srcaddr.ipv6[1] = r->v6.srcaddr[1];
+        /* Copy IPv6 destination address */
+        srec->dstaddr.ipv6[0] = r->v6.dstaddr[0];
+        srec->dstaddr.ipv6[1] = r->v6.dstaddr[1];
+    } else {
+        /* Copy IPv4 source address */
+        srec->srcaddr.ipv4 = r->v4.srcaddr;
+        srec->dstaddr.ipv4 = r->v4.dstaddr;
+    }
+    /* Copy source port */
+    srec->srcport = r->srcport;
+    /* Copy destination port */
+    srec->dstport = r->dstport;
+    /* Copy time stamp information */
+    srec->msec_first = r->msec_first;
+    srec->msec_last = r->msec_last;  
+    /* Copy protocol */          
+    srec->prot = r->prot;
+    /* Copy packets and Octects */
+    srec->dPkts = r->dPkts;
+    srec->dOctets = r->dOctets;
+    srec->out_pkts = r->out_pkts;
+    srec->out_bytes = r->out_bytes;
+    /* Copy AS information */
+    srec->srcas = r->srcas;
+    srec->dstas = r->dstas;
+}  
+
+
 int main (int argc, char* argv[])
 {
     FILE* fp;
@@ -123,42 +160,13 @@ int main (int argc, char* argv[])
             r = get_next_record(states);
             if (r) {
                 bzero(srec, sizeof(nfrecord_t));
-                if ( (r->flags & FLAG_IPV6_ADDR ) != 0 ) {
-                    /* Copy IPv6 source address */
-                    srec->ipversion = 6;
-                    srec->srcaddr.ipv6[0] = r->v6.srcaddr[0];
-                    srec->srcaddr.ipv6[1] = r->v6.srcaddr[1];
-                    /* Copy IPv6 destination address */
-                    srec->dstaddr.ipv6[0] = r->v6.dstaddr[0];
-                    srec->dstaddr.ipv6[1] = r->v6.dstaddr[1];
-                }else{
-                    /* Copy IPv4 source address */
-                    srec->srcaddr.ipv4 = r->v4.srcaddr;
-                    srec->dstaddr.ipv4 = r->v4.dstaddr;
-                }
-                /* Copy source port */
-                srec->srcport = r->srcport;
-                /* Copy destination port */
-                srec->dstport = r->dstport;
-                /* Copy time stamp information */
-                srec->msec_first = r->msec_first;
-                srec->msec_last = r->msec_last;  
-                /* Copy protocol */          
-                srec->prot = r->prot;
-                /* Copy packets and Octects */
-                srec->dPkts = r->dPkts;
-                srec->dOctets = r->dOctets;
-                srec->out_pkts = r->out_pkts;
-                srec->out_bytes = r->out_bytes;
+                copy_fields(srec, r);
                 /* Save the structure in the file */
                 i = fwrite(srec, sizeof(nfrecord_t),1, fp) != sizeof(nfrecord_t);
                 if (i != 1) {
                     fprintf(stderr,"The outputfile is incomplete!\n");
                 }
-                /* Copy AS information */
-                srec->srcas = r->srcas;
-                srec->dstas = r->dstas;
-            }
+           }
         } while (r);
         fclose(fp);    
         printf("Storage done. You could compress the file test.dat with gzip or zlib.\n");
