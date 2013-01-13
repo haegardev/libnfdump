@@ -90,6 +90,36 @@ void create_addr_directory(nfstorage_t* nfs, uint32_t maxsize) {
     nfs->addrlst = NULL; 
 }
 
+/* Search an IP address (v4 or v6) in the IP address directory.
+ * NULL is returned when the IP address directory is empty or if the IP
+ * address is not found. 
+ * Otherwise the directory record is returned.
+ */
+addr_dir_t* search_address(nfstorage_t* nfs, addr_t* addr)
+{
+    GSList* item;
+    assert(nfs && addr);
+    addr_dir_t *dir;
+    
+    dir = NULL;
+    if (nfs->addrlst) {
+        /* It is not needed to know here if there is an IPv4 or IPv6 addresses 
+         *but the memory locations are simply compared.
+         */
+        item = nfs->addrlst;
+        while (item) {
+            if (item){
+                dir = (addr_dir_t*)item->data;
+                if ((dir->addr.ipv6[0] == addr->ipv6[0]) && \
+                    (dir->addr.ipv6[1] == addr->ipv6[0])) 
+                        return dir;
+                item = item->next;
+            }
+        }
+    }
+    return dir;
+}
+
 void copy_fields(nfrecord_t* srec, master_record_t* r)
 {
     assert(srec && r);    
