@@ -30,6 +30,15 @@
 #include <string.h>
 #include <libnfdump/libnfdump.h>
 
+
+/* Attributes related to one instance of nfstorage */
+typedef struct nfstorage_s {
+    /* IP address directory size */
+    uint32_t dir_size;
+    uint32_t max_dir_size;
+    GSList* addrlst;
+} nfstorage_t;
+
 typedef union addr_s {
         uint32_t ipv4;
         uint64_t ipv6[2];
@@ -74,6 +83,12 @@ typedef struct nfrecord_s{
      */
     uint8_t padding[32];
 } nfrecord_t;
+
+void create_addr_directory(nfstorage_t* nfs, uint32_t maxsize) {
+    nfs->dir_size = 0;
+    nfs->max_dir_size = maxsize;
+    nfs->addrlst = NULL; 
+}
 
 int main (int argc, char* argv[])
 {
