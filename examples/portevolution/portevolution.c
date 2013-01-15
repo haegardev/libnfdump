@@ -59,7 +59,7 @@ typedef struct peer_s {
     uint64_t duration; /* The total amount of durations */
     uint64_t packets; /* The total amount of packets */
     uint64_t input;
-    uint16_t output;
+    uint64_t output;
     uint64_t dPkts;
     uint64_t dOctets;
     uint64_t out_pkts;
