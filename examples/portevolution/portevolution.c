@@ -249,8 +249,28 @@ void print_peer_out_pkts(portevolution_t* pe, GSList* peers)
             item = item->next;
         }
     }
-    printf("]}"); /* Close the dPkts sequence */
+    printf("]},"); /* Close the dPkts sequence */
 }
+
+void print_peer_out_bytes(portevolution_t* pe, GSList* peers)
+{
+    GSList* item;
+    peer_t* peer;
+    item = peers;
+    printf("{\"out_bytes\":[");
+    while (item) {
+        if (item){
+            peer = (peer_t*)item->data;
+            printf("%lu",peer->out_bytes);                    
+            if (item->next)
+                printf(",");
+            item = item->next;
+        }
+    }
+    printf("]}"); /* Close the sout_byte sequence */
+}
+
+
 
 void print_peer_scores(portevolution_t* pe, GSList* peers)
 {
@@ -261,6 +281,7 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     print_peer_dPkts(pe,peers);
     print_peer_dOctets(pe,peers);
     print_peer_out_pkts(pe,peers);
+    print_peer_out_bytes(pe,peers);
     printf("]}");
 }
 
