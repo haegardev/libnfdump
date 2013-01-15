@@ -141,13 +141,51 @@ void print_peer_packets(portevolution_t* pe, GSList* peers)
             item = item->next;
         }
     }
-    printf("]}"); /* Close the packet sequence */
+    printf("]},"); /* Close the packet sequence */
+}
+
+void print_peer_durations(portevolution_t* pe, GSList* peers)
+{
+    GSList* item;
+    peer_t* peer;
+    item = peers;
+    printf("{\"durations\":[");
+    while (item) {
+        if (item){
+            peer = (peer_t*)item->data;
+            printf("%lu",peer->duration);                    
+            if (item->next)
+                printf(",");
+            item = item->next;
+        }
+    }
+    printf("]},"); /* Close the durations sequence */
+}
+
+void print_peer_input(portevolution_t* pe, GSList* peers)
+{
+    GSList* item;
+    peer_t* peer;
+    item = peers;
+    printf("{\"input\":[");
+    while (item) {
+        if (item){
+            peer = (peer_t*)item->data;
+            printf("%lu",peer->input);                    
+            if (item->next)
+                printf(",");
+            item = item->next;
+        }
+    }
+    printf("]}"); /* Close the input sequence */
 }
 
 
 void print_peer_scores(portevolution_t* pe, GSList* peers)
 {
     print_peer_packets(pe,peers);
+    print_peer_durations(pe,peers);
+    print_peer_input(pe,peers);
     printf("]}");
 }
 
