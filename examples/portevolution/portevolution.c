@@ -63,7 +63,6 @@ typedef struct peer_s {
     uint64_t dPkts;
     uint64_t dOctets;
     uint64_t out_pkts;
-    uint64_t out_bytes;
     /* Put here your other features that should be recorded */
 } peer_t;
 
@@ -249,28 +248,8 @@ void print_peer_out_pkts(portevolution_t* pe, GSList* peers)
             item = item->next;
         }
     }
-    printf("]},"); /* Close the dPkts sequence */
+    printf("]}"); /* Close the dPkts sequence */
 }
-
-void print_peer_out_bytes(portevolution_t* pe, GSList* peers)
-{
-    GSList* item;
-    peer_t* peer;
-    item = peers;
-    printf("{\"out_bytes\":[");
-    while (item) {
-        if (item){
-            peer = (peer_t*)item->data;
-            printf("%lu",peer->out_bytes);                    
-            if (item->next)
-                printf(",");
-            item = item->next;
-        }
-    }
-    printf("]}"); /* Close the sout_byte sequence */
-}
-
-
 
 void print_peer_scores(portevolution_t* pe, GSList* peers)
 {
@@ -281,7 +260,6 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     print_peer_dPkts(pe,peers);
     print_peer_dOctets(pe,peers);
     print_peer_out_pkts(pe,peers);
-    print_peer_out_bytes(pe,peers);
     printf("]}");
 }
 
@@ -351,7 +329,6 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
                     peer->dPkts+= r->dPkts;
                     peer->dOctets+= r->dOctets;
                     peer->out_pkts+= r->out_pkts;
-                    peer->out_bytes+= r->out_bytes;
             nplist = g_slist_prepend(peerlist,peer);
                     return peerlist;
                 }
@@ -372,7 +349,6 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
             peer->dPkts  = r->dPkts;
             peer->dOctets = r->dOctets;
             peer->out_pkts = r->out_pkts;
-            peer->out_bytes = r->out_bytes;
             nplist = g_slist_prepend(peerlist,peer);
             src->peermembers++;
         }
