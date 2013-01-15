@@ -229,7 +229,7 @@ void print_peer_dOctets(portevolution_t* pe, GSList* peers)
             item = item->next;
         }
     }
-    printf("]},"); /* Close the dPkts sequence */
+    printf("]}"); /* Close the dPkts sequence */
 }
 
 void print_peer_scores(portevolution_t* pe, GSList* peers)
