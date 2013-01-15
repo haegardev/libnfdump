@@ -62,7 +62,6 @@ typedef struct peer_s {
     uint64_t output;
     uint64_t dPkts;
     uint64_t dOctets;
-    uint64_t out_pkts;
     /* Put here your other features that should be recorded */
 } peer_t;
 
@@ -233,24 +232,6 @@ void print_peer_dOctets(portevolution_t* pe, GSList* peers)
     printf("]},"); /* Close the dPkts sequence */
 }
 
-void print_peer_out_pkts(portevolution_t* pe, GSList* peers)
-{
-    GSList* item;
-    peer_t* peer;
-    item = peers;
-    printf("{\"out_pkts\":[");
-    while (item) {
-        if (item){
-            peer = (peer_t*)item->data;
-            printf("%lu",peer->out_pkts);                    
-            if (item->next)
-                printf(",");
-            item = item->next;
-        }
-    }
-    printf("]}"); /* Close the dPkts sequence */
-}
-
 void print_peer_scores(portevolution_t* pe, GSList* peers)
 {
     print_peer_packets(pe,peers);
@@ -259,7 +240,6 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
     print_peer_output(pe,peers);
     print_peer_dPkts(pe,peers);
     print_peer_dOctets(pe,peers);
-    print_peer_out_pkts(pe,peers);
     printf("]}");
 }
 
@@ -323,12 +303,11 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
                 if (peer->ipv4addr == r->v4.dstaddr) {
                     peer->appearance++;
                     peer->duration+=(r->last - r->first);
-                    peer->packets+=r->dPkts + r->out_pkts;
+                    peer->packets+=r->dPkts;
                     peer->input+=r->input;
                     peer->output+=r->output;
                     peer->dPkts+= r->dPkts;
                     peer->dOctets+= r->dOctets;
-                    peer->out_pkts+= r->out_pkts;
             nplist = g_slist_prepend(peerlist,peer);
                     return peerlist;
                 }
@@ -343,12 +322,10 @@ GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r)
             peer->ipv4addr = r->v4.dstaddr; 
             peer->appearance = 1;
             peer->duration = r->last - r->first; 
-            peer->packets = r->dPkts + r->out_pkts;
             peer->input = r->input;
             peer->output = r->output;
             peer->dPkts  = r->dPkts;
             peer->dOctets = r->dOctets;
-            peer->out_pkts = r->out_pkts;
             nplist = g_slist_prepend(peerlist,peer);
             src->peermembers++;
         }
