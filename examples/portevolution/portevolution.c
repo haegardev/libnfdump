@@ -126,7 +126,7 @@ portevolution_t* initevolution(int iport, int tas)
     return pe;
 }
 
-void print_peer_scores(portevolution_t* pe, GSList* peers)
+void print_peer_packets(portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
@@ -141,7 +141,14 @@ void print_peer_scores(portevolution_t* pe, GSList* peers)
             item = item->next;
         }
     }
-    printf("]}]}");
+    printf("]}"); /* Close the packet sequence */
+}
+
+
+void print_peer_scores(portevolution_t* pe, GSList* peers)
+{
+    print_peer_packets(pe,peers);
+    printf("]}");
 }
 
 void print_source_list(portevolution_t* pe)
