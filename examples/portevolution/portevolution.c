@@ -46,6 +46,8 @@
 #define MAXPEERS 4096 
 #define MAXSOURCES 4096 
 
+#define VERSION "1.0"
+
 typedef struct source_s {
     GSList* peers;
     uint32_t ipv4addr;
@@ -450,13 +452,14 @@ void usage (void)
 int main (int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "ha:p:w:r:";
+    const char* const short_options = "ha:p:w:r:v";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "as", 1, NULL, 'a' },
                 { "port", 1, NULL, 'p' },
                 { "write", 1, NULL, 'w'},
                 { "read",1, NULL, 'r'},
+                { "version",0,NULL,'v'},
                 {NULL,0,NULL,0}};
     char* nffile = NULL;
     char* resfile = NULL;
@@ -484,6 +487,9 @@ int main (int argc, char* argv[])
             case 'r':
                 nffile = optarg;
                 break; 
+            case 'v':
+                printf("%s %s\n",argv[0], VERSION);
+                return EXIT_SUCCESS;
             default:
                 /* Something unexpected happended */
                 return EXIT_FAILURE;
