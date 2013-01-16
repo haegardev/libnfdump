@@ -41,7 +41,7 @@
 #include <fcntl.h>
 #include <glib.h>
 #include <getopt.h>
-
+#include <errno.h>
 #include <libnfdump/libnfdump.h>
 #define TCP 6
 #define MAXPEERS 4096 
@@ -80,8 +80,8 @@ typedef struct portevolution_s{
 /* Functions */
 portevolution_t* initevolution(int iport, int tas);
 int process_record(portevolution_t* pe, master_record_t* r);
-void print_peer_scores(portevolution_t* pe, GSList* peers);
-void print_source_list(portevolution_t* pe);
+void print_peer_scores(FILE* fp, portevolution_t* pe, GSList* peers);
+void print_source_list(FILE* fp, portevolution_t* pe);
 GSList* search_address(portevolution_t* pe, uint32_t ip);
 GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r);
 source_t* update_source_list(portevolution_t* pe, uint32_t ip);
@@ -124,132 +124,132 @@ portevolution_t* initevolution(int iport, int tas)
     return pe;
 }
 
-void print_peer_packets(portevolution_t* pe, GSList* peers)
+void print_peer_packets(FILE* fp, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    printf("{\"packets\":[");
+    fprintf(fp,"{\"packets\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%lu",peer->appearance);                    
+            fprintf(fp,"%lu",peer->appearance);                    
             if (item->next)
-                printf(",");
+                fprintf(fp,",");
             item = item->next;
         }
     }
-    printf("]},"); /* Close the packet sequence */
+    fprintf(fp,"]},"); /* Close the packet sequence */
 }
 
-void print_peer_durations(portevolution_t* pe, GSList* peers)
+void print_peer_durations(FILE* fp, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    printf("{\"durations\":[");
+    fprintf(fp,"{\"durations\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%lu",peer->duration);                    
+            fprintf(fp,"%lu",peer->duration);                    
             if (item->next)
-                printf(",");
+                fprintf(fp,",");
             item = item->next;
         }
     }
-    printf("]},"); /* Close the durations sequence */
+    fprintf(fp,"]},"); /* Close the durations sequence */
 }
 
-void print_peer_input(portevolution_t* pe, GSList* peers)
+void print_peer_input(FILE* fp, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    printf("{\"input\":[");
+    fprintf(fp,"{\"input\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%lu",peer->input);                    
+            fprintf(fp,"%lu",peer->input);                    
             if (item->next)
-                printf(",");
+                fprintf(fp,",");
             item = item->next;
         }
     }
-    printf("]},"); /* Close the input sequence */
+    fprintf(fp,"]},"); /* Close the input sequence */
 }
 
-void print_peer_output(portevolution_t* pe, GSList* peers)
+void print_peer_output(FILE* fp, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    printf("{\"output\":[");
+    fprintf(fp,"{\"output\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%lu",peer->output);                    
+            fprintf(fp,"%lu",peer->output);                    
             if (item->next)
-                printf(",");
+                fprintf(fp,",");
             item = item->next;
         }
     }
-    printf("]},"); /* Close the output sequence */
+    fprintf(fp,"]},"); /* Close the output sequence */
 }
 
-void print_peer_dPkts(portevolution_t* pe, GSList* peers)
+void print_peer_dPkts(FILE* fp, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    printf("{\"dPkts\":[");
+    fprintf(fp,"{\"dPkts\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%lu",peer->dPkts);                    
+            fprintf(fp,"%lu",peer->dPkts);                    
             if (item->next)
-                printf(",");
+                fprintf(fp,",");
             item = item->next;
         }
     }
-    printf("]},"); /* Close the dPkts sequence */
+    fprintf(fp,"]},"); /* Close the dPkts sequence */
 }
 
-void print_peer_dOctets(portevolution_t* pe, GSList* peers)
+void print_peer_dOctets(FILE* fp, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    printf("{\"dOctets\":[");
+    fprintf(fp,"{\"dOctets\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            printf("%lu",peer->dOctets);                    
+            fprintf(fp,"%lu",peer->dOctets);                    
             if (item->next)
-                printf(",");
+                fprintf(fp,",");
             item = item->next;
         }
     }
-    printf("]}"); /* Close the dPkts sequence */
+    fprintf(fp,"]}"); /* Close the dPkts sequence */
 }
 
-void print_peer_scores(portevolution_t* pe, GSList* peers)
+void print_peer_scores(FILE * fp, portevolution_t* pe, GSList* peers)
 {
-    print_peer_packets(pe,peers);
-    print_peer_durations(pe,peers);
-    print_peer_input(pe,peers);
-    print_peer_output(pe,peers);
-    print_peer_dPkts(pe,peers);
-    print_peer_dOctets(pe,peers);
-    printf("]}");
+    print_peer_packets(fp, pe, peers);
+    print_peer_durations(fp, pe, peers);
+    print_peer_input(fp, pe, peers);
+    print_peer_output(fp, pe, peers);
+    print_peer_dPkts(fp, pe, peers);
+    print_peer_dOctets(fp, pe, peers);
+    fprintf(fp,"]}");
 }
 
-void print_source_list(portevolution_t* pe)
+void print_source_list(FILE *fp, portevolution_t* pe)
 {
     GSList* item; 
     source_t* src;
     item = pe->srclist;
     char as[40];
-    printf("[{\"data\":[");
+    fprintf(fp,"[{\"data\":[");
     while (item != NULL){
         if (item){
             src = (source_t*)item->data;
@@ -259,14 +259,14 @@ void print_source_list(portevolution_t* pe)
             }
             src->ipv4addr = htonl(src->ipv4addr);
             inet_ntop(AF_INET, &src->ipv4addr, as, sizeof(as));
-            printf("{\"%s\":[{\"num_peers\":%d},", as,src->peermembers);
-            print_peer_scores(pe, src->peers);
+            fprintf(fp, "{\"%s\":[{\"num_peers\":%d},", as,src->peermembers);
+            print_peer_scores(fp, pe, src->peers);
             if (item->next)
-                printf(",\n");
+                fprintf(fp, ",\n");
             item = item->next; 
         }
     }
-    printf("]},");
+    fprintf(fp,"]},");
  }
 
 GSList* search_address(portevolution_t* pe, uint32_t ip)
@@ -373,10 +373,17 @@ int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
     libnfstates_t* states;
     master_record_t* r;
     portevolution_t* pe; 
+    FILE* fp;
 
     /* Either nffilename or jsfilename was not specified */
     if (!(nffile && resfile))
         return EXIT_FAILURE;
+
+    if (!(fp=fopen(resfile,"w"))) {
+        fprintf(stderr,"Could not open file (%s). %s.\n", resfile, 
+                                                         strerror(errno));
+        return EXIT_FAILURE;
+    }
 
     /* Initialize libnfdump */
     states = initlib(NULL, nffile, NULL);
@@ -397,25 +404,26 @@ int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
             }           
         } while (r);
 
-        print_source_list(pe);
+        print_source_list(fp, pe);
         /* Export metadata about processing aswell */
-        printf("{\"Inspected Port\":%d},",pe->iport);
-        printf("{\"Source ASN\":%d},",pe->tas);
-        printf("{\"Processed Records\":%d},",pe->counter);
-        printf("{\"Matched Records\":%d},",pe->matched);
-        printf("{\"Source List Members\":%d},",pe->srcmembers);
+        fprintf(fp,"{\"Inspected Port\":%d},",pe->iport);
+        fprintf(fp,"{\"Source ASN\":%d},",pe->tas);
+        fprintf(fp,"{\"Processed Records\":%d},",pe->counter);
+        fprintf(fp,"{\"Matched Records\":%d},",pe->matched);
+        fprintf(fp,"{\"Source List Members\":%d},",pe->srcmembers);
         if (pe->srcmembers == MAXSOURCES){
-            printf("{\"Truncated Source List\":true},");
+            fprintf(fp,"{\"Truncated Source List\":true},");
         } else { 
-            printf("{\"Truncated Source List\":false},");
+            fprintf(fp,"{\"Truncated Source List\":false},");
         }
-        printf("{\"Number of missed peers\":%d},",pe->missedpeers);
-        printf("{\"Number of full peer lists\":%d},", pe->fullpeerlists);
-        printf("{\"Full peer list ratio\":%.2f}",
+        fprintf(fp,"{\"Number of missed peers\":%d},",pe->missedpeers);
+        fprintf(fp,"{\"Number of full peer lists\":%d},", pe->fullpeerlists);
+        fprintf(fp,"{\"Full peer list ratio\":%.2f}",
                (float) pe->fullpeerlists / (float) pe->srcmembers); 
 
-        printf("]\n");
+        fprintf(fp,"]\n");
         /* Close the nfcapd file and free up internal states */
+        fclose(fp);
         libcleanup(states);
         //TODO free up memory
     }
