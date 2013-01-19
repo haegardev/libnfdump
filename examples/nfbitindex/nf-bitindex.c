@@ -370,7 +370,7 @@ void usage(void)
 {
     printf("nf-bitindex - Put IPv4 addresses extracted from nfcapd files in a bitindex\n");
     printf("\n");
-    printf("nf-bitindex [-h] [-l -w filename]\n");
+    printf("nf-bitindex [-h] [-l -w <filename>] [ -q -r <filename> ] \n");
     printf("\n");
     printf("OPTIONS\n");
     printf("\n");
@@ -378,10 +378,23 @@ void usage(void)
     printf("    -b --batch  Read nfcapd files from standard input that are indexed\n");
     printf("    -w --write  Specify the filename where the bitindex is stored\n");    
     printf("    -s --source Specify a source to identify the netflow records\n");
+    printf("    -q --query  Query if the ip addresses read through standard input are \n");
+    printf("                in the bitindex. The result is outputed on standard output. \n");
+    printf("    -r --read   Read a gzip compressed bitindex\n");
     printf("\n");
     printf("EXAMPLE\n");
     printf("    Put all the nfcapd files from Septembre 2012 in a bitindex\n\n");
     printf("find . | grep \"nfcapd.201209\" | nf-bitindex -b -w september2012.ibi.gz -s router_1\n\n"); 
+    printf("QUERY INPUT FORMAT\n\n");
+    printf("IP addresses should be passed as list (delimited with a \\n) in dotted decimal notation\n\n");
+    printf("QUERY OUTPUT FORMAT\n");
+    printf("\n");
+    printf("xxx.xxx.xxx.xxx source firstseen lastseen\n\n");
+    printf("xxx.xxx.xxx.xxx is an IPv4 address\n");
+    printf("source is the source that generated the netflow records\n");
+    printf("firstseen indicates the oldest timestamp of *ANY* netflow record present in this index\n");
+    printf("lastseen indicates the youngest timestamp of *ANY* netflow record presented in this index\n");
+    printf("Hence, the right file must be still searched!\n\n");
     printf("AUTHOR\n");
     printf("    Gerard Wagener\n");
     printf("\n");
@@ -449,17 +462,21 @@ out:
 int main(int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "hw:bs:";
+    const char* const short_options = "hw:bs:r:q";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "batch", 0, NULL, 'b' },
                 { "write", 1, NULL, 'w' },
                 { "source",1, NULL, 'b' },
+                { "query",0,NULL, 'b'},
+                { "read",1,NULL,'q'},
                 {NULL,0,NULL,0}};
     char* targetfile;
     char * source;
-    int batch;
+    char *sourcefile;
+    int batch,query;
     batch = 0;
+    query = 0;
     targetfile = NULL;
     source = NULL;
     do {
@@ -480,6 +497,12 @@ int main(int argc, char* argv[])
             case 's':
                 source = optarg;
                 break;
+            case 'r':
+                sourcefile = optarg;
+                break;
+            case 'q':
+                query = 1;
+                break;
             default:
                 return EXIT_FAILURE;
             }
@@ -488,17 +511,32 @@ int main(int argc, char* argv[])
  
     /* test parameters */
     if (!batch) {
-        printf("Nothing to do.\n");
-        return EXIT_SUCCESS;
+        if (!query) {
+            printf("Nothing to do.\n");
+            return EXIT_SUCCESS;
+        }
     }
-    if (!targetfile){
+    if (query & batch) {
+        fprintf(stderr,"Batch processing and query mode are mutal exclusive.\n");
+        return EXIT_FAILURE;
+    }
+    if (batch & (!targetfile)){
         fprintf(stderr, "A target file has to be specified with the -w option\n");
         return EXIT_FAILURE;
     }
-    if (!source) {
+
+    if (batch & (!source)) {
         fprintf(stderr,"A source must be specified with the -s option\n");
         return EXIT_FAILURE;
     }
 
-    return batch_processing(source, targetfile);
+    if (query & (!sourcefile)) {
+        fprintf(stderr, "In query mode, a source file must be specified with the -r option\n");
+        return EXIT_FAILURE;
+    }
+    /* Do the work */
+    if (batch)
+        return batch_processing(source, targetfile);
+    
+    return EXIT_SUCCESS;
 }
