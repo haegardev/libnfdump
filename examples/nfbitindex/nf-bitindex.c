@@ -409,6 +409,7 @@ int batch_processing(char *source, char* targetfile)
         if (!index_nfcapd_file(filename,bitindex)){
             printf("[ERROR] Could not process %s\n",filename);
         }
+        printf("[INFO] Creating %s\n",targetfile);
         if (store_bitindex(targetfile, hdr, bitindex)){
             r = EXIT_SUCCESS;
         }else{
