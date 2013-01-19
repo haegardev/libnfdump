@@ -296,9 +296,10 @@ int store_bitindex(char* filename, ipv4cache_hdr_t* hdr, uint8_t* bitindex)
         r = gzwrite(fp, hdr, sizeof(ipv4cache_hdr_t));
         if (r == sizeof(ipv4cache_hdr_t)) {
             r = gzwrite(fp, bitindex, SPACE_SIZE);
-            if (r != SPACE_SIZE) {
+            if (r == SPACE_SIZE) {
+                out = 1;
+            }else{
                 fprintf(stderr,"Could not store bitindex");
-                out=1;
             }
         }else{
             fprintf(stderr,"Could not store header\n");
