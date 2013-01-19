@@ -386,22 +386,16 @@ int batch_processing(char *source, char* targetfile)
     /* FIXME assume that the timezone of the netflow collector is the same
      * than the timezone configured on this machine
      */
-    if (!(hdr = create_local_header(source))){
-        r = EXIT_FAILURE;
+    if (!(hdr = create_local_header(source)))
         goto out;
-    }
     
-    if (!(bitindex = bitindex_new(SPACE))){
-        r = EXIT_FAILURE;
-        goto out;
-    }
-        
+    if (!(bitindex = bitindex_new(SPACE)))
+       goto out;
+ 
     filename = calloc(1024,1);
-    if (!filename) { 
-        r = EXIT_FAILURE;
+    if (!filename)  
         goto out;
-    }
-    
+ 
     while (fgets(filename, 1024, stdin)){
         filename[1023] = 0;
         /* remove new line */
