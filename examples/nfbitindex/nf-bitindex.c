@@ -146,6 +146,7 @@ ipv4cache_hdr_t* build_netflow_hdr(char* source, tz_data_t *tz)
         /* Put a timestamp in the structure */
         gettimeofday(&(hdr->creator_time),NULL);
         /* The first seen field and the last seen field are later set */
+        hdr->firstseen.tv_sec = 0xFFFFFFFF;
     }
     return hdr;
 }
@@ -235,7 +236,7 @@ void dump(uint8_t* bitindex)
  * 1 on success 
  * 0 on errors (due to the failure of initlib) 
  */ 
-int index_nfcapd_file(char* filename, uint8_t* bitindex)
+int index_nfcapd_file(char* filename, ipv4cache_hdr_t* hdr, uint8_t* bitindex)
 {
     libnfstates_t* states;
     master_record_t* rec;
@@ -251,6 +252,22 @@ int index_nfcapd_file(char* filename, uint8_t* bitindex)
                 }
                 BITINDEX_SET(bitindex,rec->v4.srcaddr);
                 BITINDEX_SET(bitindex,rec->v4.dstaddr);
+                /* Sometimes the order of the nfcapd files is not assured
+                 * The first flow record in an nfcapd file does not necessary have the oldest timestamp
+                 * The last flow record in an nfcapd file is not necessary the youngest.
+                 * FIXME If the timestamps are equal, the usec are not properly updated
+                 */ 
+                 
+                if (rec->first < hdr->firstseen.tv_sec) {
+                    /* This flow is older than all the other flows seen before */
+                    hdr->firstseen.tv_sec = rec->first;
+                    hdr->firstseen.tv_usec = rec->msec_first;
+                }
+                if (rec->last > hdr->lastseen.tv_sec) {
+                    /* This flow more recent than all the other observed flows */
+                    hdr->lastseen.tv_sec = rec->last;
+                    hdr->lastseen.tv_usec = rec->msec_last;
+                }
             }
         } while (rec);
         
@@ -406,7 +423,7 @@ int batch_processing(char *source, char* targetfile)
             }
         }
         printf("[INFO] Processing %s\n",filename);
-        if (!index_nfcapd_file(filename,bitindex)){
+        if (!index_nfcapd_file(filename, hdr, bitindex)){
             printf("[ERROR] Could not process %s\n",filename);
         }
     }
