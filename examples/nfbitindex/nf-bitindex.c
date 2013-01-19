@@ -344,6 +344,30 @@ ipv4cache_hdr_t* load_bitindex(char* filename, uint8_t* bitindex)
     /* There was an error somewhere */
     return NULL;    
 }
+
+void usage(void)
+{
+    printf("nf-bitindex - Put IPv4 addresses extracted from nfcapd files in a bitindex\n");
+    printf("\n");
+    printf("nf-bitindex [-h] [-l -w filename]\n");
+    printf("\n");
+    printf("OPTIONS\n");
+    printf("\n");
+    printf("    -h --help   Shows this screen\n");
+    printf("    -b --batch  Read nfcapd files from standard input that are indexed\n");
+    printf("    -w --write  Specify the filename where the bitindex is stored\n");    
+    printf("\n");
+    printf("EXAMPLE\n");
+    printf("    Put all the nfcapd files from Septembre 2012 in a bitindex\n\n");
+    printf("find . | grep \"nfcapd.201209\" | nf-bitindex -b -w september2012.ibi.gz\n\n"); 
+    printf("AUTHOR\n");
+    printf("    Gerard Wagener\n");
+    printf("\n");
+    printf("LICENSE\n");
+    printf("    GNU Affero General Public License\n");
+}
+
+
 int main(int argc, char* argv[])
 {
     
