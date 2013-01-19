@@ -20,6 +20,8 @@
  * TODO Generation timestamp 
  * TODO write merge functions,diff
  * TODO create bitindex_t
+ * TODO implement append mode 
+ * TODO implement shm support
  */
 #include <stdio.h>
 #include <stdlib.h>
