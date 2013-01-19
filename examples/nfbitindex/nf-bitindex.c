@@ -32,6 +32,7 @@
 #include <libnfdump/libnfdump.h>
 #include <string.h>
 #include <errno.h>
+#include <getopt.h>
 #define BITINDEX_SET(bs, addr) bs[addr>>3] |= 1 << (addr-((addr>>3)<<3))
 #define SPACE 0xFFFFFFFF
 #define LASTBLOCK 536854528
@@ -370,6 +371,47 @@ void usage(void)
 
 int main(int argc, char* argv[])
 {
+    int next_option = 0;
+    const char* const short_options = "hw:b";
+    const struct option long_options[] = {
+                { "help", 0, NULL, 'h' },
+                { "batch", 0, NULL, 'b' },
+                { "write", 1, NULL, 'w' },
+                {NULL,0,NULL,0}};
+    char* targetfile;
+    int batch;
+    batch = 0;
+    targetfile = NULL;
+    do {
+        next_option = getopt_long (argc, argv, short_options, 
+                                   long_options, NULL);
+        if (next_option > 0) {
+            switch(next_option)
+            {
+            case 'h':
+                usage();
+                return EXIT_SUCCESS;
+            case 'b':
+                batch = 1;
+                break;
+            case 'w':
+                targetfile = optarg;
+                break;
+            default:
+                return EXIT_FAILURE;
+            }
+        }
+    }while (next_option != -1);
+ 
+    /* test parameters */
+    if (!batch) {
+        printf("Nothing to do.\n");
+        return EXIT_SUCCESS;
+    }
+    if (!targetfile){
+        fprintf(stderr, "A target file has to be specified with the -w option\n");
+        return EXIT_FAILURE;
+    }
     
-    return 0;                            
+    return EXIT_SUCCESS;                            
 }
