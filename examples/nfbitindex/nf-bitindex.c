@@ -379,7 +379,9 @@ int main(int argc, char* argv[])
                 { "write", 1, NULL, 'w' },
                 {NULL,0,NULL,0}};
     char* targetfile;
+    char *filename;
     int batch;
+    int i;
     batch = 0;
     targetfile = NULL;
     do {
@@ -412,6 +414,22 @@ int main(int argc, char* argv[])
         fprintf(stderr, "A target file has to be specified with the -w option\n");
         return EXIT_FAILURE;
     }
-    
+   
+    /* Read filenames from stdin */
+    filename = calloc(1024,1);
+    if (!filename)
+        return EXIT_FAILURE;
+    while (fgets(filename, 1024, stdin)){
+        filename[1023] = 0;
+        /* remove new line */
+        for (i=0; i<1024; i++){
+            if (filename[i] == '\n'){
+                filename[i] = 0;
+                break;
+            }
+        }
+        printf("Got %s\n",filename);
+    }
+    free(filename);
     return EXIT_SUCCESS;                            
 }
