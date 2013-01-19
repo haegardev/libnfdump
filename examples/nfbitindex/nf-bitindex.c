@@ -35,6 +35,7 @@
 #include <string.h>
 #include <errno.h>
 #include <getopt.h>
+#include <arpa/inet.h>
 #define BITINDEX_SET(bs, addr) bs[addr>>3] |= 1 << (addr-((addr>>3)<<3))
 #define SPACE 0xFFFFFFFF
 #define LASTBLOCK 536854528
@@ -461,9 +462,54 @@ out:
 
 int query_addr (char* sourcefile)
 {
-    printf("Skeleyon function for performing the queries\n");
-    printf("Real function not yet implemented\n");
-    return EXIT_FAILURE;
+    char *istr;
+    int i,r;
+    uint32_t addr;
+    ipv4cache_hdr_t* hdr;
+    uint8_t* bitindex;
+    r = EXIT_FAILURE;
+    istr  = calloc(64,1);
+    if (!istr)
+        goto oret;
+    
+    bitindex = bitindex_new(SPACE);
+    if (!bitindex)
+        goto oret;
+
+    hdr = load_bitindex(sourcefile, bitindex);
+    if (!hdr)
+        goto oret;
+
+    while (fgets(istr, 64, stdin)){
+        istr[63] = 0;
+        /* Replace the new line */
+        for (i=0; i<64;i++){
+            if (istr[i] == '\n'){
+                istr[i] = 0;
+                break;
+            }
+        }
+        addr = 0; //FIXME check endianess 
+        if (inet_pton(AF_INET, istr,&addr)){ 
+            if (test_bit(bitindex, addr)){
+                printf("%s %s %d %d\n",istr, hdr->source[0], 
+                                      (uint32_t)hdr->firstseen.tv_sec, 
+                                      (uint32_t)hdr->lastseen.tv_sec); 
+            }
+        }else{
+            fprintf(stderr,"The string %s is not a valid IP address\n",istr);
+        }
+    }
+    /* Here every thing is assumed to be fine */
+    r = EXIT_SUCCESS;
+oret:
+    if (istr)
+        free(istr);
+    if (bitindex)
+        free(bitindex);
+    if (hdr)
+        free(hdr);    
+    return r;
 }
 
 int main(int argc, char* argv[])
