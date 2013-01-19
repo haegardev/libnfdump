@@ -369,6 +369,32 @@ void usage(void)
     printf("    GNU Affero General Public License\n");
 }
 
+/* Read files from standard input and put them in the bitindex file  
+ * identified with the targetfile parameter.
+ * returns EXIT_SUCCESS on success and EXIT_FAILURE on errors.
+ */
+int batch_processing(char *source, char* targetfile)
+{
+    int i;
+    char *filename;
+    assert(source && targetfile);
+    filename = calloc(1024,1);
+    if (!filename)
+        return EXIT_FAILURE;
+    while (fgets(filename, 1024, stdin)){
+        filename[1023] = 0;
+        /* remove new line */
+        for (i=0; i<1024; i++){
+            if (filename[i] == '\n'){
+                filename[i] = 0;
+                break;
+            }
+        }
+        printf("Got %s\n",filename);
+    }
+    free(filename);
+    return EXIT_SUCCESS;                            
+}
 
 int main(int argc, char* argv[])
 {
@@ -382,9 +408,7 @@ int main(int argc, char* argv[])
                 {NULL,0,NULL,0}};
     char* targetfile;
     char * source;
-    char *filename;
     int batch;
-    int i;
     batch = 0;
     targetfile = NULL;
     source = NULL;
@@ -426,21 +450,5 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    /* Read filenames from stdin */
-    filename = calloc(1024,1);
-    if (!filename)
-        return EXIT_FAILURE;
-    while (fgets(filename, 1024, stdin)){
-        filename[1023] = 0;
-        /* remove new line */
-        for (i=0; i<1024; i++){
-            if (filename[i] == '\n'){
-                filename[i] = 0;
-                break;
-            }
-        }
-        printf("Got %s\n",filename);
-    }
-    free(filename);
-    return EXIT_SUCCESS;                            
+    return batch_processing(source, targetfile);
 }
