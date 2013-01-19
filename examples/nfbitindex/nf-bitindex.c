@@ -409,14 +409,14 @@ int batch_processing(char *source, char* targetfile)
         if (!index_nfcapd_file(filename,bitindex)){
             printf("[ERROR] Could not process %s\n",filename);
         }
-        printf("[INFO] Creating %s\n",targetfile);
-        if (store_bitindex(targetfile, hdr, bitindex)){
-            r = EXIT_SUCCESS;
-        }else{
-            printf("[ERROR] Could not store bitindex in file %s\n",targetfile);
-            r = EXIT_FAILURE;
-        }    
     }
+    printf("[INFO] Creating %s\n",targetfile);
+    if (store_bitindex(targetfile, hdr, bitindex)){
+        r = EXIT_SUCCESS;
+    } else {
+        printf("[ERROR] Could not store bitindex in file %s\n",targetfile);
+        r = EXIT_FAILURE;
+    }    
 out:
     if (hdr)
         free(hdr);
