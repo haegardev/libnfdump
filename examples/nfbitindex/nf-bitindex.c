@@ -357,10 +357,11 @@ void usage(void)
     printf("    -h --help   Shows this screen\n");
     printf("    -b --batch  Read nfcapd files from standard input that are indexed\n");
     printf("    -w --write  Specify the filename where the bitindex is stored\n");    
+    printf("    -s --source Specify a source to identify the netflow records\n");
     printf("\n");
     printf("EXAMPLE\n");
     printf("    Put all the nfcapd files from Septembre 2012 in a bitindex\n\n");
-    printf("find . | grep \"nfcapd.201209\" | nf-bitindex -b -w september2012.ibi.gz\n\n"); 
+    printf("find . | grep \"nfcapd.201209\" | nf-bitindex -b -w september2012.ibi.gz -s router_1\n\n"); 
     printf("AUTHOR\n");
     printf("    Gerard Wagener\n");
     printf("\n");
@@ -372,18 +373,21 @@ void usage(void)
 int main(int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "hw:b";
+    const char* const short_options = "hw:bs:";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "batch", 0, NULL, 'b' },
                 { "write", 1, NULL, 'w' },
+                { "source",1, NULL, 'b' },
                 {NULL,0,NULL,0}};
     char* targetfile;
+    char * source;
     char *filename;
     int batch;
     int i;
     batch = 0;
     targetfile = NULL;
+    source = NULL;
     do {
         next_option = getopt_long (argc, argv, short_options, 
                                    long_options, NULL);
@@ -398,6 +402,9 @@ int main(int argc, char* argv[])
                 break;
             case 'w':
                 targetfile = optarg;
+                break;
+            case 's':
+                source = optarg;
                 break;
             default:
                 return EXIT_FAILURE;
@@ -414,7 +421,11 @@ int main(int argc, char* argv[])
         fprintf(stderr, "A target file has to be specified with the -w option\n");
         return EXIT_FAILURE;
     }
-   
+    if (!source) {
+        fprintf(stderr,"A source must be specified with the -s option\n");
+        return EXIT_FAILURE;
+    }
+
     /* Read filenames from stdin */
     filename = calloc(1024,1);
     if (!filename)
