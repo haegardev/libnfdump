@@ -375,12 +375,32 @@ void usage(void)
  */
 int batch_processing(char *source, char* targetfile)
 {
-    int i;
+    int i,r;
     char *filename;
+    uint8_t* bitindex;
+    ipv4cache_hdr_t* hdr;
+ 
     assert(source && targetfile);
+    r = EXIT_FAILURE; /* Return code */
+    /* FIXME assume that the timezone of the netflow collector is the same
+     * than the timezone configured on this machine
+     */
+    if (!(hdr = create_local_header(source))){
+        r = EXIT_FAILURE;
+        goto out;
+    }
+    
+    if (!(bitindex = bitindex_new(SPACE))){
+        r = EXIT_FAILURE;
+        goto out;
+    }
+        
     filename = calloc(1024,1);
-    if (!filename)
-        return EXIT_FAILURE;
+    if (!filename) { 
+        r = EXIT_FAILURE;
+        goto out;
+    }
+    
     while (fgets(filename, 1024, stdin)){
         filename[1023] = 0;
         /* remove new line */
@@ -390,10 +410,25 @@ int batch_processing(char *source, char* targetfile)
                 break;
             }
         }
-        printf("Got %s\n",filename);
+        printf("[INFO] Processing %s\n",filename);
+        if (!index_nfcapd_file(filename,bitindex)){
+            printf("[ERROR] Could not process %s\n",filename);
+        }
+        if (store_bitindex(targetfile, hdr, bitindex)){
+            r = EXIT_SUCCESS;
+        }else{
+            printf("[ERROR] Could not store bitindex in file %s\n",targetfile);
+            r = EXIT_FAILURE;
+        }    
     }
-    free(filename);
-    return EXIT_SUCCESS;                            
+out:
+    if (hdr)
+        free(hdr);
+    if (bitindex)
+        free(bitindex);
+    if (filename)
+        free(filename);
+    return r;                          
 }
 
 int main(int argc, char* argv[])
