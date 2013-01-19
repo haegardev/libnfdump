@@ -459,6 +459,13 @@ out:
     return r;                          
 }
 
+int query_addr (char* sourcefile)
+{
+    printf("Skeleyon function for performing the queries\n");
+    printf("Real function not yet implemented\n");
+    return EXIT_FAILURE;
+}
+
 int main(int argc, char* argv[])
 {
     int next_option = 0;
@@ -537,6 +544,8 @@ int main(int argc, char* argv[])
     /* Do the work */
     if (batch)
         return batch_processing(source, targetfile);
-    
+   
+    if (query)
+        return query_addr(sourcefile); 
     return EXIT_SUCCESS;
 }
