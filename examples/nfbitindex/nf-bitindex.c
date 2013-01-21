@@ -500,7 +500,7 @@ out:
     return r;                          
 }
 
-int query_addr (char* sourcefile)
+int query_addr (char* sourcefile, int segment_id)
 {
     char *istr;
     int i,r;
@@ -511,15 +511,26 @@ int query_addr (char* sourcefile)
     istr  = calloc(64,1);
     if (!istr)
         goto oret;
+    bitindex = NULL;
     
-    bitindex = bitindex_new(SPACE);
-    if (!bitindex)
-        goto oret;
-
-    hdr = load_bitindex(sourcefile, bitindex);
-    if (!hdr)
-        goto oret;
-
+    if (!segment_id) {
+        //fprintf(stderr,"[DEBUG] use local memory\n"); 
+        bitindex = bitindex_new(SPACE);
+        if (!bitindex)
+            goto oret;
+        hdr = load_bitindex(sourcefile, bitindex);
+        if (!hdr)
+            goto oret;
+    } else {
+        //fprintf(stderr,"[DEBUG] use shared memory segment\n");
+        if ((bitindex=(uint8_t*)shmat(segment_id, 0, SHM_RND)) < 0){
+            printf("%p\n",bitindex);
+            fprintf(stderr,"Failed to attach to segment_id %d cause=%s\n",
+                    segment_id, strerror(errno));
+            goto oret;
+        }
+    }
+    assert(bitindex);
     while (fgets(istr, 64, stdin)){
         istr[63] = 0;
         /* Replace the new line */
@@ -532,9 +543,20 @@ int query_addr (char* sourcefile)
         addr = 0; 
         if (inet_pton(AF_INET, istr,&addr)){ 
             if (test_bit(bitindex, addr)){
-                printf("%s %s %d %d\n",istr, hdr->source[0], 
+                /* FIXME In shared memory segment no header is present, that
+                 *should be done in the future. Otherwise metainformation are 
+                 *not known
+                 */
+                if (!segment_id){
+                    printf("%s %s %d %d\n",istr, hdr->source[0], 
                                       (uint32_t)hdr->firstseen.tv_sec, 
                                       (uint32_t)hdr->lastseen.tv_sec); 
+                }else{
+                    /* If the IP address is in the bitindex the ip address 
+                     * is printed on stdout otherwise nothing is printed
+                     */
+                    printf("%s\n",istr);
+                }
             }
         }else{
             fprintf(stderr,"The string %s is not a valid IP address\n",istr);
@@ -545,8 +567,14 @@ int query_addr (char* sourcefile)
 oret:
     if (istr)
         free(istr);
-    if (bitindex)
+    if (!segment_id && (bitindex))
         free(bitindex);
+    /* Detach from shared memory segment if needed */
+    if ((segment_id>0) && (shmdt(bitindex))<0){
+        fprintf(stderr,"Failed to detach from segment_id %d, cause=%s\n",
+                       segment_id, strerror(errno));
+        r = EXIT_FAILURE;
+    }
     if (hdr)
         free(hdr);    
     return r;
@@ -703,6 +731,6 @@ int main(int argc, char* argv[])
         return batch_processing(source, targetfile, segment_id);
    
     if (query)
-        return query_addr(sourcefile); 
+        return query_addr(sourcefile,segment_id); 
     return EXIT_SUCCESS;
 }
