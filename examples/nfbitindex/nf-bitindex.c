@@ -378,8 +378,8 @@ void usage(void)
 {
     printf("nf-bitindex - Put IPv4 addresses extracted from nfcapd files in a bitindex\n");
     printf("\n");
-    printf("nf-bitindex [-h] [-l -w <filename>] [ -q -r <filename> ] [ -c filename]\n");
-    printf("\n");
+    printf("nf-bitindex [-h] [-b -w <filename>] [ -q -r <filename> ] [ -c filename]\n");
+    printf("[-b -a=id] [-q -a=id\n");
     printf("OPTIONS\n");
     printf("\n");
     printf("    -h --help   Shows this screen\n");
@@ -391,6 +391,7 @@ void usage(void)
     printf("    -r --read   Read a gzip compressed bitindex\n");
     printf("    -c --create Creates a shared memory segment for storing the bitindex.\n");
     printf("                The shared memory identifier is stored in the specified filename\n");
+    printf("    -a --attach=id Attaches to a shared memory segment\n"); 
     printf("\n");
     printf("EXAMPLE\n");
     printf("    Put all the nfcapd files from Septembre 2012 in a bitindex\n\n");
@@ -416,14 +417,13 @@ void usage(void)
  * identified with the targetfile parameter.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on errors.
  */
-int batch_processing(char *source, char* targetfile)
+int batch_processing(char *source, char* targetfile, int segment_id)
 {
     int i,r;
     char *filename;
     uint8_t* bitindex;
     ipv4cache_hdr_t* hdr;
  
-    assert(source && targetfile);
     r = EXIT_FAILURE; /* Return code */
     /* FIXME assume that the timezone of the netflow collector is the same
      * than the timezone configured on this machine
@@ -431,9 +431,25 @@ int batch_processing(char *source, char* targetfile)
     if (!(hdr = create_local_header(source)))
         goto out;
     
-    if (!(bitindex = bitindex_new(SPACE)))
-       goto out;
- 
+    bitindex = NULL; 
+    /* Check if the data should be exported in shared memory segment */
+    if (segment_id){
+        printf("[INFO] Trying to connect to segment_id %d\n", segment_id);
+        if ((bitindex=(uint8_t*)shmat(segment_id, 0, SHM_RND)) < 0){
+            printf("Failed to attach to shared memory segment id=%d cause=%s\n",
+                    segment_id, strerror(errno));
+            goto out;
+        }else{
+            printf("[INFO] Successfully connected to segment_id %d\n",segment_id);
+
+        }
+    }else{
+        printf("[INFO] No shared memory used, use local memory\n");
+        if (!(bitindex = bitindex_new(SPACE)))
+            goto out;
+    }
+    /* A bit index is needed here either shared or private */
+    assert(bitindex);
     filename = calloc(1024,1);
     if (!filename)  
         goto out;
@@ -452,20 +468,35 @@ int batch_processing(char *source, char* targetfile)
             printf("[ERROR] Could not process %s\n",filename);
         }
     }
-    printf("[INFO] Creating %s\n",targetfile);
-    if (store_bitindex(targetfile, hdr, bitindex)){
-        r = EXIT_SUCCESS;
-    } else {
-        printf("[ERROR] Could not store bitindex in file %s\n",targetfile);
-        r = EXIT_FAILURE;
-    }    
+    if (targetfile) {
+        printf("[INFO] Creating %s\n",targetfile);
+        if (store_bitindex(targetfile, hdr, bitindex)){
+            printf("[INFO] Sucessfully created %s",targetfile);
+            r = EXIT_SUCCESS;
+        } else {
+            printf("[ERROR] Could not store bitindex in file %s\n",targetfile);
+            r = EXIT_FAILURE;
+        }
+    }else{
+        /* When no file is used, is a shm used? */
+        if (segment_id > 0)
+            printf("[INFO] Sucessfully updated the shared memory segment_id=%d\n",
+                   segment_id);
+            r = EXIT_SUCCESS;
+    }
 out:
     if (hdr)
         free(hdr);
-    if (bitindex)
+    if (!segment_id && (bitindex))
         free(bitindex);
     if (filename)
         free(filename);
+    /* Detach from shared memory segment if needed */
+    if ((segment_id>0) && (shmdt(bitindex))<0){
+        fprintf(stderr,"Failed to detach from segment_id %d, cause=%s\n",
+                       segment_id, strerror(errno));
+        r = EXIT_FAILURE;
+    }
     return r;                          
 }
 
@@ -579,7 +610,7 @@ int init_shm(char* idfile)
 int main(int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "hw:bs:r:qc:";
+    const char* const short_options = "hw:bs:r:qc:a:";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "batch", 0, NULL, 'b' },
@@ -588,12 +619,15 @@ int main(int argc, char* argv[])
                 { "query",0,NULL, 'b'},
                 { "read",1,NULL,'q'},
                 { "create",1,NULL,'q'},
+                { "attach",1,NULL,'a'},
                 {NULL,0,NULL,0}};
     char* targetfile;
     char * source;
     char *sourcefile;
     char *shmidfile;
     int batch,query;
+    int segment_id;
+    segment_id = 0;
     batch = 0;
     query = 0;
     targetfile = NULL;
@@ -626,6 +660,9 @@ int main(int argc, char* argv[])
             case 'c':
                 shmidfile = optarg;
                 break;
+            case 'a':
+                segment_id = atoi(optarg);
+                break;
             default:
                 return EXIT_FAILURE;
             }
@@ -647,7 +684,7 @@ int main(int argc, char* argv[])
         fprintf(stderr,"Batch processing and query mode are mutal exclusive.\n");
         return EXIT_FAILURE;
     }
-    if (batch & (!targetfile)){
+    if ((!segment_id) & batch & (!targetfile)){
         fprintf(stderr, "A target file has to be specified with the -w option\n");
         return EXIT_FAILURE;
     }
@@ -663,7 +700,7 @@ int main(int argc, char* argv[])
     }
     /* Do the work */
     if (batch)
-        return batch_processing(source, targetfile);
+        return batch_processing(source, targetfile, segment_id);
    
     if (query)
         return query_addr(sourcefile); 
