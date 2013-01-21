@@ -379,7 +379,7 @@ void usage(void)
     printf("nf-bitindex - Put IPv4 addresses extracted from nfcapd files in a bitindex\n");
     printf("\n");
     printf("nf-bitindex [-h] [-b -w <filename>] [ -q -r <filename> ] [ -c filename]\n");
-    printf("[-b -a=id] [-q -a=id\n");
+    printf("[-b -a=id] [-q -a=id] [-z id]\n");
     printf("OPTIONS\n");
     printf("\n");
     printf("    -h --help   Shows this screen\n");
@@ -391,7 +391,10 @@ void usage(void)
     printf("    -r --read   Read a gzip compressed bitindex\n");
     printf("    -c --create Creates a shared memory segment for storing the bitindex.\n");
     printf("                The shared memory identifier is stored in the specified filename\n");
-    printf("    -a --attach=id Attaches to a shared memory segment\n"); 
+    printf("    -a --attach=id Attaches to a shared memory segment\n");
+    printf("    -z --zero=id In case a shared memory segment is used, the bitset can be\n");
+    printf("              reset (all bits to 0) with this option. The shared memory segment\n");
+    printf("              is identified with the id parameter in decimal\n");
     printf("\n");
     printf("EXAMPLE\n");
     printf("    Put all the nfcapd files from Septembre 2012 in a bitindex\n\n");
@@ -635,10 +638,29 @@ int init_shm(char* idfile)
     return EXIT_FAILURE;
 }
 
+int reset_shm(int segment_id)
+{
+    uint8_t* bitindex;
+    if ((bitindex=(uint8_t*)shmat(segment_id, 0, SHM_RND)) < 0) {
+        fprintf(stderr,"Failed to attach to shared memory segment id=%d cause=%s\n",
+                    segment_id, strerror(errno));
+        return EXIT_FAILURE;
+    }
+    printf("[INFO] Reset started ...\n");
+    bzero(bitindex, SPACE_SIZE);
+    if (shmdt(bitindex)<0) {
+        fprintf(stderr,"Could not detach from shared memory segment\n");
+        return EXIT_FAILURE;
+    } 
+    printf("[INFO] Reset ended and successfully detached ...\n");
+    /* Assume that everything went fine */
+    return EXIT_SUCCESS;
+}
+
 int main(int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "hw:bs:r:qc:a:";
+    const char* const short_options = "hw:bs:r:qc:a:z:";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "batch", 0, NULL, 'b' },
@@ -648,6 +670,7 @@ int main(int argc, char* argv[])
                 { "read",1,NULL,'q'},
                 { "create",1,NULL,'q'},
                 { "attach",1,NULL,'a'},
+                { "zero",1,NULL,'z'},
                 {NULL,0,NULL,0}};
     char* targetfile;
     char * source;
@@ -655,6 +678,7 @@ int main(int argc, char* argv[])
     char *shmidfile;
     int batch,query;
     int segment_id;
+    int shouldzero;
     segment_id = 0;
     batch = 0;
     query = 0;
@@ -662,6 +686,7 @@ int main(int argc, char* argv[])
     source = NULL;
     shmidfile = NULL;
     sourcefile = NULL;
+    shouldzero =0;
     do {
         next_option = getopt_long (argc, argv, short_options, 
                                    long_options, NULL);
@@ -692,12 +717,20 @@ int main(int argc, char* argv[])
             case 'a':
                 segment_id = atoi(optarg);
                 break;
+            case 'z':
+                shouldzero = 1;
+                segment_id = atoi(optarg);
+                break;
             default:
                 return EXIT_FAILURE;
             }
         }
     }while (next_option != -1);
     
+    /* maintenance stuff */
+    if (shouldzero)
+        return reset_shm(segment_id);
+
     if (shmidfile) {
         return init_shm(shmidfile);    
     }
