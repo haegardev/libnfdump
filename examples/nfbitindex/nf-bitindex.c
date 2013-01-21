@@ -661,6 +661,7 @@ int main(int argc, char* argv[])
     targetfile = NULL;
     source = NULL;
     shmidfile = NULL;
+    sourcefile = NULL;
     do {
         next_option = getopt_long (argc, argv, short_options, 
                                    long_options, NULL);
@@ -722,7 +723,12 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (query & (!sourcefile)) {
+    if (query & (segment_id==0) & (!sourcefile) ){
+        fprintf(stderr,"In query mode a shared memory segment or a source file");
+        fprintf(stderr," must be specified.\n");
+        return EXIT_FAILURE;
+    }
+    if (query & (!sourcefile) & (segment_id == 0)) {
         fprintf(stderr, "In query mode, a source file must be specified with the -r option\n");
         return EXIT_FAILURE;
     }
