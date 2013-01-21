@@ -253,6 +253,10 @@ int index_nfcapd_file(char* filename, ipv4cache_hdr_t* hdr, uint8_t* bitindex)
                     continue;
                     /* Bitset is not suited for IPv6 */
                 }
+                /* Use network byte order to be independent of the architecture */ 
+                rec->v4.srcaddr = htonl(rec->v4.srcaddr);
+                rec->v4.dstaddr = htonl(rec->v4.dstaddr);
+                /* Update the bitindex */
                 BITINDEX_SET(bitindex,rec->v4.srcaddr);
                 BITINDEX_SET(bitindex,rec->v4.dstaddr);
                 /* Sometimes the order of the nfcapd files is not assured
@@ -489,7 +493,7 @@ int query_addr (char* sourcefile)
                 break;
             }
         }
-        addr = 0; //FIXME check endianess 
+        addr = 0; 
         if (inet_pton(AF_INET, istr,&addr)){ 
             if (test_bit(bitindex, addr)){
                 printf("%s %s %d %d\n",istr, hdr->source[0], 
