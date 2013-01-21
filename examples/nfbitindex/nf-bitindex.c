@@ -36,6 +36,9 @@
 #include <errno.h>
 #include <getopt.h>
 #include <arpa/inet.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
 #define BITINDEX_SET(bs, addr) bs[addr>>3] |= 1 << (addr-((addr>>3)<<3))
 #define SPACE 0xFFFFFFFF
 #define LASTBLOCK 536854528
@@ -375,7 +378,7 @@ void usage(void)
 {
     printf("nf-bitindex - Put IPv4 addresses extracted from nfcapd files in a bitindex\n");
     printf("\n");
-    printf("nf-bitindex [-h] [-l -w <filename>] [ -q -r <filename> ] \n");
+    printf("nf-bitindex [-h] [-l -w <filename>] [ -q -r <filename> ] [ -c filename]\n");
     printf("\n");
     printf("OPTIONS\n");
     printf("\n");
@@ -386,6 +389,8 @@ void usage(void)
     printf("    -q --query  Query if the ip addresses read through standard input are \n");
     printf("                in the bitindex. The result is outputed on standard output. \n");
     printf("    -r --read   Read a gzip compressed bitindex\n");
+    printf("    -c --create Creates a shared memory segment for storing the bitindex.\n");
+    printf("                The shared memory identifier is stored in the specified filename\n");
     printf("\n");
     printf("EXAMPLE\n");
     printf("    Put all the nfcapd files from Septembre 2012 in a bitindex\n\n");
@@ -516,10 +521,65 @@ oret:
     return r;
 }
 
+/* Returns the maximal shared memory size on sucess and 0 on errors */
+size_t get_max_shm(void)
+{
+    FILE*fp;
+    size_t v;
+    v = 0;
+    fp = fopen("/proc/sys/kernel/shmmax","r");
+    if (fp){
+        //FIXME use a safer function
+        fscanf(fp,"%ld",&v);    
+        fclose(fp);
+    }else{
+        fprintf(stderr,"Cannot open /proc/sys/kernel/shmmax cause=%s\n",
+                strerror(errno));
+    }
+    return v;
+}
+
+/* Function to iniliatlize a shared memory segment. The shared memory segment
+ * identifier is stored in the idfile using decimal notation (fitted for 
+ * iprm)
+ */
+int init_shm(char* idfile)
+{
+    int hnd;
+    FILE* fp;
+    size_t s;
+    s = SPACE_SIZE;
+    if (s > get_max_shm()) {
+        fprintf(stderr,"Your system does not support shared memory segments of %ld bytes\n",s);
+        return EXIT_FAILURE;
+    }   
+    printf("s=%ld\n",s); 
+    hnd = shmget(IPC_PRIVATE, s, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
+    if (hnd > 0) {
+        fp = fopen(idfile,"w");
+        if (fp) {
+            fprintf(fp,"%d",hnd);
+            printf("[INFO] Shared memory segment created and the identifier is stored in %s\n",
+                    idfile);
+            return EXIT_SUCCESS;
+        }else{
+            fprintf(stderr,"Failed to store shared memory segment id in %s, cause=%s\n",
+                           idfile,strerror(errno));
+            /* Destroy the shared memory segment */
+            if (shmctl(hnd, IPC_RMID, NULL)){
+                fprintf(stderr,"Could not destroy shared memory segment %x\n",hnd);
+            }
+        }
+    }else{
+        fprintf(stderr,"Could not create shared memory segment %s\n",strerror(errno));
+    }
+    return EXIT_FAILURE;
+}
+
 int main(int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "hw:bs:r:q";
+    const char* const short_options = "hw:bs:r:qc:";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "batch", 0, NULL, 'b' },
@@ -527,15 +587,18 @@ int main(int argc, char* argv[])
                 { "source",1, NULL, 'b' },
                 { "query",0,NULL, 'b'},
                 { "read",1,NULL,'q'},
+                { "create",1,NULL,'q'},
                 {NULL,0,NULL,0}};
     char* targetfile;
     char * source;
     char *sourcefile;
+    char *shmidfile;
     int batch,query;
     batch = 0;
     query = 0;
     targetfile = NULL;
     source = NULL;
+    shmidfile = NULL;
     do {
         next_option = getopt_long (argc, argv, short_options, 
                                    long_options, NULL);
@@ -560,12 +623,19 @@ int main(int argc, char* argv[])
             case 'q':
                 query = 1;
                 break;
+            case 'c':
+                shmidfile = optarg;
+                break;
             default:
                 return EXIT_FAILURE;
             }
         }
     }while (next_option != -1);
- 
+    
+    if (shmidfile) {
+        return init_shm(shmidfile);    
+    }
+     
     /* test parameters */
     if (!batch) {
         if (!query) {
