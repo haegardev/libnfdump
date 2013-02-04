@@ -22,6 +22,7 @@
  * TODO create bitindex_t
  * TODO implement append mode in file mode
  * TODO extend shm support: metadata, flush, delete
+ * TODO export bitindex as list of dotted decimal notation
  */
 #include <stdio.h>
 #include <stdlib.h>
