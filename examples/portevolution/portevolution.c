@@ -42,6 +42,7 @@
 #include <getopt.h>
 #include <errno.h>
 #include <libnfdump/libnfdump.h>
+#include <zlib.h>
 #define TCP 6
 #define MAXPEERS 4096 
 #define MAXSOURCES 4096 
@@ -76,6 +77,15 @@ typedef struct portevolution_s{
     int missedpeers; /* Number of missed peers */
     int fullpeerlists; /* Number of full peer lists */
 } portevolution_t;
+
+typedef struct param_s {
+    uint16_t port;
+    uint16_t as;
+    gzFile* gf;
+    FILE *fp;
+    uint8_t compress;
+    char* resfile;
+} param_t;
 
 //TODO set errno or something like that in the portevolution_t
 /* Functions */
@@ -368,7 +378,7 @@ source_t* update_source_list(portevolution_t* pe, uint32_t ip)
     return NULL;
 }
 
-int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
+int process_nfcapd_file(char* nffile, param_t* params)
 {
 
     libnfstates_t* states;
@@ -376,20 +386,31 @@ int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
     portevolution_t* pe; 
     FILE* fp;
 
-    /* Either nffilename or jsfilename was not specified */
-    if (!(nffile && resfile))
+    /* An nffilename must be specified */
+    if (!(nffile))
         return EXIT_FAILURE;
 
-    if (!(fp=fopen(resfile,"w"))) {
-        fprintf(stderr,"Could not open file (%s). %s.\n", resfile, 
+    if (!(params->resfile) && (params->compress)) {
+        params->gf = gzopen(params->resfile, "wb");
+        if (!params->gf){
+            fprintf(stderr,"gzopen %s failed.%s\n",params->resfile, 
+                                                   strerror(errno));
+            return EXIT_FAILURE;
+        }
+    }
+
+    if ((params->resfile) && (!params->compress)) {
+        if (!(fp=fopen(params->resfile,"w"))) {
+            fprintf(stderr,"Could not open file (%s). %s.\n", params->resfile, 
                                                          strerror(errno));
-        return EXIT_FAILURE;
+            return EXIT_FAILURE;
+        }
     }
 
     /* Initialize libnfdump */
     states = initlib(NULL, nffile, NULL);
     /* Initialize port evolution */
-    pe = initevolution(port,as);
+    pe = initevolution(params->port,params->as);
  
     if (states) {
         do {
@@ -433,7 +454,7 @@ int process_nfcapd_file(char* nffile, char* resfile, uint16_t port, uint16_t as)
 
 void usage (void)
 {
-    printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
+    printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 "Usage portevolution [-h] [-a X -p P -w]  ", 
 "Do some accounting from all the hosts belong to an AS X that connect to AS Y",
 "on port P.",
@@ -443,6 +464,7 @@ void usage (void)
 "   -p --port   sepcify the destination port on a host in another AS",
 "   -w --write  specify the target file where the results are written",
 "   -r --read   specify an nfcapd file that is read by this program",
+"   -z --zcompress the output",
 "\nAUTHOR",
 "   Gerard Wagener (2013)",
 "\nLICENSE",
@@ -452,7 +474,7 @@ void usage (void)
 int main (int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "ha:p:w:r:v";
+    const char* const short_options = "ha:p:w:r:vsz";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "as", 1, NULL, 'a' },
@@ -460,11 +482,18 @@ int main (int argc, char* argv[])
                 { "write", 1, NULL, 'w'},
                 { "read",1, NULL, 'r'},
                 { "version",0,NULL,'v'},
+                { "stdout",0,NULL,'s'},
+                { "zcompress",0,NULL,'z'},
                 {NULL,0,NULL,0}};
     char* nffile = NULL;
-    char* resfile = NULL;
-    uint16_t as = 0;
-    uint32_t port = 0;     
+
+    param_t* params;
+    
+    params = calloc(sizeof(param_t),1);
+    if (!params) {
+        fprintf(stderr,"There is no memory left\n");
+        return EXIT_FAILURE;
+    }
 
     do {
         next_option = getopt_long (argc, argv, short_options, 
@@ -476,13 +505,13 @@ int main (int argc, char* argv[])
                 usage();
                 return EXIT_SUCCESS;
             case 'a':
-                as = atoi(optarg);
+                params->as = atoi(optarg);
                 break;
             case 'p':
-                port = atoi(optarg);
+                params->port = atoi(optarg);
                 break;
             case 'w':
-                resfile = optarg;
+                params->resfile = optarg;
                 break;
             case 'r':
                 nffile = optarg;
@@ -490,6 +519,8 @@ int main (int argc, char* argv[])
             case 'v':
                 printf("%s %s\n",argv[0], VERSION);
                 return EXIT_SUCCESS;
+            case 'z':
+                params->compress = 1;
             default:
                 /* Something unexpected happended */
                 return EXIT_FAILURE;
@@ -498,7 +529,7 @@ int main (int argc, char* argv[])
     } while(next_option != -1);
 
     /* Check parameters */
-    if (!port) {
+    if (!params->port) {
         fprintf(stderr,"A port number must be specified\n");
         return EXIT_FAILURE;
     }
@@ -508,12 +539,8 @@ int main (int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (!resfile) {
-        fprintf(stderr,"A result filename must be specified\n");
-        return EXIT_FAILURE;
-    }
-    
-    process_nfcapd_file(nffile, resfile, port, as);
-        
+    process_nfcapd_file(nffile, params);
+    free(params);    
+
     return EXIT_SUCCESS;
 } 
