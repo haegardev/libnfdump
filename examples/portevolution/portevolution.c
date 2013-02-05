@@ -27,6 +27,8 @@
  * TODO add support to handle more sourcelist such that more than 1 protocol 
  * canbe analyzed at the same time.
  * TODO Put these functions in a library
+ * FIXME gprintf errors are not handled -> files could be corrupted and exit
+ * code fine
  */ 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,8 +48,8 @@
 #define TCP 6
 #define MAXPEERS 4096 
 #define MAXSOURCES 4096 
-
-#define VERSION "1.0"
+#define PBUFSIZE 512
+#define VERSION "1.1"
 
 typedef struct source_s {
     GSList* peers;
@@ -85,17 +87,49 @@ typedef struct param_s {
     FILE *fp;
     uint8_t compress;
     char* resfile;
+    char buf[PBUFSIZE];
 } param_t;
 
 //TODO set errno or something like that in the portevolution_t
 /* Functions */
 portevolution_t* initevolution(int iport, int tas);
 int process_record(portevolution_t* pe, master_record_t* r);
-void print_peer_scores(FILE* fp, portevolution_t* pe, GSList* peers);
-void print_source_list(FILE* fp, portevolution_t* pe);
+void print_peer_scores(param_t* p, portevolution_t* pe, GSList* peers);
+void print_source_list(param_t* p, portevolution_t* pe);
 GSList* search_address(portevolution_t* pe, uint32_t ip);
 GSList* update_peer_list(portevolution_t* pe, source_t* src, master_record_t* r);
 source_t* update_source_list(portevolution_t* pe, uint32_t ip);
+
+int gprintf(param_t* p, const char* fmt,...)
+{
+    va_list argp; 
+    int r;
+    int l;
+    va_start(argp, fmt);
+    /* Copy to buffer because we need to export it in a plain file, gzfile or stdout */ 
+    vsnprintf((char*)&(p->buf), PBUFSIZE, fmt, argp);
+    va_end(argp);
+    l = strlen(p->buf);
+    if ((p->compress) && (p->resfile)) {
+        r = gzwrite(p->gf, &p->buf,strlen(p->buf));
+        if (r == l) {
+            return 1;
+        }else{
+            fprintf(stderr,"Compression error %d\n",r);
+        }
+    }
+    
+    if ((!p->compress)) {
+        r=fwrite(&p->buf,1,l,p->fp);
+        if (r == l) {
+            return 1;
+        } else {
+            fprintf(stderr,"Storage error\n");
+        } 
+    }
+    /* Something went wrong */
+    return 0;
+}
 
 int process_record(portevolution_t* pe, master_record_t* r)
 {
@@ -135,132 +169,132 @@ portevolution_t* initevolution(int iport, int tas)
     return pe;
 }
 
-void print_peer_packets(FILE* fp, portevolution_t* pe, GSList* peers)
+void print_peer_packets(param_t* p, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    fprintf(fp,"{\"packets\":[");
+    gprintf(p,"{\"packets\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            fprintf(fp,"%lu",peer->appearance);                    
+            gprintf(p,"%lu",peer->appearance);                    
             if (item->next)
-                fprintf(fp,",");
+                gprintf(p,",");
             item = item->next;
         }
     }
-    fprintf(fp,"]},"); /* Close the packet sequence */
+    gprintf(p,"]},"); /* Close the packet sequence */
 }
 
-void print_peer_durations(FILE* fp, portevolution_t* pe, GSList* peers)
+void print_peer_durations(param_t* p, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    fprintf(fp,"{\"durations\":[");
+    gprintf(p,"{\"durations\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            fprintf(fp,"%lu",peer->duration);                    
+            gprintf(p,"%lu",peer->duration);                    
             if (item->next)
-                fprintf(fp,",");
+                gprintf(p,",");
             item = item->next;
         }
     }
-    fprintf(fp,"]},"); /* Close the durations sequence */
+    gprintf(p,"]},"); /* Close the durations sequence */
 }
 
-void print_peer_input(FILE* fp, portevolution_t* pe, GSList* peers)
+void print_peer_input(param_t* p, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    fprintf(fp,"{\"input\":[");
+    gprintf(p,"{\"input\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            fprintf(fp,"%lu",peer->input);                    
+            gprintf(p,"%lu",peer->input);                    
             if (item->next)
-                fprintf(fp,",");
+                gprintf(p,",");
             item = item->next;
         }
     }
-    fprintf(fp,"]},"); /* Close the input sequence */
+    gprintf(p,"]},"); /* Close the input sequence */
 }
 
-void print_peer_output(FILE* fp, portevolution_t* pe, GSList* peers)
+void print_peer_output(param_t* p, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    fprintf(fp,"{\"output\":[");
+    gprintf(p,"{\"output\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            fprintf(fp,"%lu",peer->output);                    
+            gprintf(p,"%lu",peer->output);                    
             if (item->next)
-                fprintf(fp,",");
+                gprintf(p,",");
             item = item->next;
         }
     }
-    fprintf(fp,"]},"); /* Close the output sequence */
+    gprintf(p,"]},"); /* Close the output sequence */
 }
 
-void print_peer_dPkts(FILE* fp, portevolution_t* pe, GSList* peers)
+void print_peer_dPkts(param_t* p, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    fprintf(fp,"{\"dPkts\":[");
+    gprintf(p,"{\"dPkts\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            fprintf(fp,"%lu",peer->dPkts);                    
+            gprintf(p,"%lu",peer->dPkts);                    
             if (item->next)
-                fprintf(fp,",");
+                gprintf(p,",");
             item = item->next;
         }
     }
-    fprintf(fp,"]},"); /* Close the dPkts sequence */
+    gprintf(p,"]},"); /* Close the dPkts sequence */
 }
 
-void print_peer_dOctets(FILE* fp, portevolution_t* pe, GSList* peers)
+void print_peer_dOctets(param_t* p, portevolution_t* pe, GSList* peers)
 {
     GSList* item;
     peer_t* peer;
     item = peers;
-    fprintf(fp,"{\"dOctets\":[");
+    gprintf(p,"{\"dOctets\":[");
     while (item) {
         if (item){
             peer = (peer_t*)item->data;
-            fprintf(fp,"%lu",peer->dOctets);                    
+            gprintf(p,"%lu",peer->dOctets);                    
             if (item->next)
-                fprintf(fp,",");
+                gprintf(p,",");
             item = item->next;
         }
     }
-    fprintf(fp,"]}"); /* Close the dPkts sequence */
+    gprintf(p,"]}"); /* Close the dPkts sequence */
 }
 
-void print_peer_scores(FILE * fp, portevolution_t* pe, GSList* peers)
+void print_peer_scores(param_t *p, portevolution_t* pe, GSList* peers)
 {
-    print_peer_packets(fp, pe, peers);
-    print_peer_durations(fp, pe, peers);
-    print_peer_input(fp, pe, peers);
-    print_peer_output(fp, pe, peers);
-    print_peer_dPkts(fp, pe, peers);
-    print_peer_dOctets(fp, pe, peers);
-    fprintf(fp,"]}");
+    print_peer_packets(p, pe, peers);
+    print_peer_durations(p, pe, peers);
+    print_peer_input(p, pe, peers);
+    print_peer_output(p, pe, peers);
+    print_peer_dPkts(p, pe, peers);
+    print_peer_dOctets(p, pe, peers);
+    gprintf(p,"]}");
 }
 
-void print_source_list(FILE *fp, portevolution_t* pe)
+void print_source_list(param_t *p, portevolution_t* pe)
 {
     GSList* item; 
     source_t* src;
     item = pe->srclist;
     char as[40];
-    fprintf(fp,"[{\"data\":[");
+    gprintf(p,"[{\"data\":[");
     while (item != NULL){
         if (item){
             src = (source_t*)item->data;
@@ -270,14 +304,14 @@ void print_source_list(FILE *fp, portevolution_t* pe)
             }
             src->ipv4addr = htonl(src->ipv4addr);
             inet_ntop(AF_INET, &src->ipv4addr, as, sizeof(as));
-            fprintf(fp, "{\"%s\":[{\"num_peers\":%d},", as,src->peermembers);
-            print_peer_scores(fp, pe, src->peers);
+            gprintf(p, "{\"%s\":[{\"num_peers\":%d},", as,src->peermembers);
+            print_peer_scores(p, pe, src->peers);
             if (item->next)
-                fprintf(fp, ",\n");
+                gprintf(p, ",\n");
             item = item->next; 
         }
     }
-    fprintf(fp,"]},");
+    gprintf(p,"]},");
  }
 
 GSList* search_address(portevolution_t* pe, uint32_t ip)
@@ -384,13 +418,15 @@ int process_nfcapd_file(char* nffile, param_t* params)
     libnfstates_t* states;
     master_record_t* r;
     portevolution_t* pe; 
-    FILE* fp;
 
     /* An nffilename must be specified */
     if (!(nffile))
         return EXIT_FAILURE;
 
-    if (!(params->resfile) && (params->compress)) {
+    /* By default results are printed on stdout */
+    params->fp = stdout;
+
+    if ((params->resfile) && (params->compress)) {
         params->gf = gzopen(params->resfile, "wb");
         if (!params->gf){
             fprintf(stderr,"gzopen %s failed.%s\n",params->resfile, 
@@ -400,7 +436,7 @@ int process_nfcapd_file(char* nffile, param_t* params)
     }
 
     if ((params->resfile) && (!params->compress)) {
-        if (!(fp=fopen(params->resfile,"w"))) {
+        if (!(params->fp=fopen(params->resfile,"w"))) {
             fprintf(stderr,"Could not open file (%s). %s.\n", params->resfile, 
                                                          strerror(errno));
             return EXIT_FAILURE;
@@ -426,26 +462,25 @@ int process_nfcapd_file(char* nffile, param_t* params)
             }           
         } while (r);
 
-        print_source_list(fp, pe);
+        print_source_list(params, pe);
         /* Export metadata about processing aswell */
-        fprintf(fp,"{\"Inspected Port\":%d},",pe->iport);
-        fprintf(fp,"{\"Source ASN\":%d},",pe->tas);
-        fprintf(fp,"{\"Processed Records\":%d},",pe->counter);
-        fprintf(fp,"{\"Matched Records\":%d},",pe->matched);
-        fprintf(fp,"{\"Source List Members\":%d},",pe->srcmembers);
+        gprintf(params,"{\"Inspected Port\":%d},",pe->iport);
+        gprintf(params,"{\"Source ASN\":%d},",pe->tas);
+        gprintf(params,"{\"Processed Records\":%d},",pe->counter);
+        gprintf(params,"{\"Matched Records\":%d},",pe->matched);
+        gprintf(params,"{\"Source List Members\":%d},",pe->srcmembers);
         if (pe->srcmembers == MAXSOURCES){
-            fprintf(fp,"{\"Truncated Source List\":true},");
+            gprintf(params,"{\"Truncated Source List\":true},");
         } else { 
-            fprintf(fp,"{\"Truncated Source List\":false},");
+            gprintf(params,"{\"Truncated Source List\":false},");
         }
-        fprintf(fp,"{\"Number of missed peers\":%d},",pe->missedpeers);
-        fprintf(fp,"{\"Number of full peer lists\":%d},", pe->fullpeerlists);
-        fprintf(fp,"{\"Full peer list ratio\":%.2f}",
+        gprintf(params,"{\"Number of missed peers\":%d},",pe->missedpeers);
+        gprintf(params,"{\"Number of full peer lists\":%d},", pe->fullpeerlists);
+        gprintf(params,"{\"Full peer list ratio\":%.2f}",
                (float) pe->fullpeerlists / (float) pe->srcmembers); 
 
-        fprintf(fp,"]\n");
+        gprintf(params,"]\n");
         /* Close the nfcapd file and free up internal states */
-        fclose(fp);
         libcleanup(states);
         //TODO free up memory
     }
@@ -521,6 +556,7 @@ int main (int argc, char* argv[])
                 return EXIT_SUCCESS;
             case 'z':
                 params->compress = 1;
+                break;
             default:
                 /* Something unexpected happended */
                 return EXIT_FAILURE;
@@ -540,6 +576,13 @@ int main (int argc, char* argv[])
     }
 
     process_nfcapd_file(nffile, params);
+    
+    /* Clean up */
+    if ((params->compress) && (params->resfile))
+        gzclose(params->gf);
+    if ((!params->compress) && (params->resfile))
+        fclose(params->fp);
+
     free(params);    
 
     return EXIT_SUCCESS;
