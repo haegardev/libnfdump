@@ -88,6 +88,7 @@ typedef struct param_s {
     uint8_t compress;
     char* resfile;
     char buf[PBUFSIZE];
+    uint16_t ovasn; 
 } param_t;
 
 //TODO set errno or something like that in the portevolution_t
@@ -465,7 +466,11 @@ int process_nfcapd_file(char* nffile, param_t* params)
         print_source_list(params, pe);
         /* Export metadata about processing aswell */
         gprintf(params,"{\"Inspected Port\":%d},",pe->iport);
-        gprintf(params,"{\"Source ASN\":%d},",pe->tas);
+        if (params->ovasn) { 
+            gprintf(params,"{\"Source ASN\":%d},",params->ovasn);
+        }else{
+            gprintf(params,"{\"Source ASN\":%d},",pe->tas);
+        }
         gprintf(params,"{\"Processed Records\":%d},",pe->counter);
         gprintf(params,"{\"Matched Records\":%d},",pe->matched);
         gprintf(params,"{\"Source List Members\":%d},",pe->srcmembers);
@@ -489,7 +494,7 @@ int process_nfcapd_file(char* nffile, param_t* params)
 
 void usage (void)
 {
-    printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
+    printf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 "Usage portevolution [-h] [-a X -p P -w]  ", 
 "Do some accounting from all the hosts belong to an AS X that connect to AS Y",
 "on port P.",
@@ -500,6 +505,7 @@ void usage (void)
 "   -w --write  specify the target file where the results are written",
 "   -r --read   specify an nfcapd file that is read by this program",
 "   -z --zcompress the output",
+"   -o --overwrite the default AS number (0) with something more meaningfull", 
 "\nAUTHOR",
 "   Gerard Wagener (2013)",
 "\nLICENSE",
@@ -509,7 +515,7 @@ void usage (void)
 int main (int argc, char* argv[])
 {
     int next_option = 0;
-    const char* const short_options = "ha:p:w:r:vsz";
+    const char* const short_options = "ha:p:w:r:vszo:";
     const struct option long_options[] = {
                 { "help", 0, NULL, 'h' },
                 { "as", 1, NULL, 'a' },
@@ -519,6 +525,7 @@ int main (int argc, char* argv[])
                 { "version",0,NULL,'v'},
                 { "stdout",0,NULL,'s'},
                 { "zcompress",0,NULL,'z'},
+                {"overwrite",1,NULL,'o'},
                 {NULL,0,NULL,0}};
     char* nffile = NULL;
 
@@ -556,6 +563,9 @@ int main (int argc, char* argv[])
                 return EXIT_SUCCESS;
             case 'z':
                 params->compress = 1;
+                break;
+            case 'o':
+                params->ovasn  = atoi(optarg);
                 break;
             default:
                 /* Something unexpected happended */
